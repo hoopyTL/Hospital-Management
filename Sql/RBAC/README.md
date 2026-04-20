@@ -1,30 +1,62 @@
-# RBAC Scripts – Hướng dẫn chạy
+# RBAC – Role-Based Access Control
 
-## Đăng nhập bằng ADMIN (DBA)
+Folder này CHỈ chứa các script liên quan **quyền truy cập** (roles, grants, assign).
+Các cơ chế khác đã được tách riêng:
 
-Tài khoản: `ADMIN`  
-Mật khẩu: `12345`
+- **VPD** (Row-Level Security) → `Sql/VPD/`
+- **Audit** (ghi vết) → `Sql/Audit/`
 
-## Thứ tự chạy:
+## Thứ tự chạy
 
-1. `01_create_roles.sql` – Tạo 2 role: RL_KYTHUATVIEN, RL_BENHNHAN
-2. `02_grant_role_permissions.sql` – Cấp quyền object-level cho từng role
-3. `03_assign_roles_to_users.sql` – Gán role cho users (mất thời gian vì 100K bệnh nhân)
-4. `04_vpd_policies.sql` – Cài đặt VPD Row-Level Security
-5. `05_audit_ketqua.sql` – Tạo bảng audit + trigger ghi vết KET_QUA
+Đăng nhập `ADMIN / 12345 @ XEPDB1`, mở lần lượt từng file bằng SQL Developer và nhấn **F5 (Run Script)**:
 
-## Rollback (nếu cần):
+| # | File | Mô tả |
+| - | - | - |
+| 1 | `01_create_roles.sql` | Tạo 4 role: `RL_KYTHUATVIEN`, `RL_BENHNHAN`, `RL_DIEUPHOIVIEN`, `RL_BACSI` |
+| 2 | `02_grant_ktv_bn.sql`  | GRANT object/column cho KTV + BN (TC#4, TC#5) |
+| 3 | `03_grant_dpv_bs.sql`  | GRANT object/column cho DPV + BS (TC#2, TC#3) + tạo `MV_BACSI_LIST`, `MV_KTV_LIST` |
+| 4 | `04_assign_ktv_bn.sql` | GRANT role cho 50 KTV + 100K BN (mất nhiều thời gian) |
+| 5 | `05_assign_dpv_bs.sql` | GRANT role cho NV0001-NV0020 (DPV) + NV0021-NV0120 (BS) |
 
-Chạy `06_drop_rbac.sql` để xóa toàn bộ RBAC objects.
+## Rollback
 
-## Chi tiết chính sách:
+`99_drop_rbac.sql` – revoke + drop role + drop MV.
+**Lưu ý**: chạy `VPD/99_drop_vpd.sql` và `Audit/99_drop_audit.sql` TRƯỚC nếu muốn dọn sạch hoàn toàn.
 
-### TC#4 – Kỹ thuật viên (RL_KYTHUATVIEN)
-- SELECT trên HSBA_DV (VPD: chỉ thấy rows MA_KTV = mình)
-- UPDATE(KET_QUA) trên HSBA_DV (VPD + audit trigger)
-- SELECT trên NHAN_VIEN (VPD: chỉ thấy row mình)
-- UPDATE(QUE_QUAN, SDT) trên NHAN_VIEN
+## Danh sách quyền tóm tắt
 
-### TC#5 – Bệnh nhân (RL_BENHNHAN)
-- SELECT trên BENH_NHAN (VPD: chỉ thấy row mình)
-- UPDATE(SO_NHA, TEN_DUONG, QUAN_HUYEN, TINH_TP, TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC) trên BENH_NHAN
+### `RL_KYTHUATVIEN` (TC#4 + TC#5)
+
+| Bảng | SELECT | INSERT | UPDATE | DELETE |
+| - | - | - | - | - |
+| HSBA_DV   | ✅ | – | ✅ (chỉ `KET_QUA`) | – |
+| NHAN_VIEN | ✅ | – | ✅ (`QUE_QUAN`, `SDT`) | – |
+
+### `RL_BENHNHAN` (TC#5)
+
+| Bảng | SELECT | INSERT | UPDATE | DELETE |
+| - | - | - | - | - |
+| BENH_NHAN | ✅ | – | ✅ (7 trường địa chỉ + tiền sử + dị ứng) | – |
+
+### `RL_DIEUPHOIVIEN` (TC#2 + TC#5)
+
+| Bảng | SELECT | INSERT | UPDATE | DELETE |
+| - | - | - | - | - |
+| BENH_NHAN | ✅ | ✅ | ✅ (11 trường) | – |
+| HSBA      | ✅ | ✅ | ✅ (`MA_KHOA`, `MA_BS`) | – |
+| HSBA_DV   | ✅ | ✅ | ✅ (`MA_KTV`) | – |
+| NHAN_VIEN | ✅ | – | ✅ (`QUE_QUAN`, `SDT`) | – |
+| MV_BACSI_LIST / MV_KTV_LIST | ✅ | – | – | – |
+
+### `RL_BACSI` (TC#3 + TC#5)
+
+| Bảng | SELECT | INSERT | UPDATE | DELETE |
+| - | - | - | - | - |
+| HSBA      | ✅ | – | ✅ (`CHUAN_DOAN`, `DIEU_TRI`, `KET_LUAN`) | – |
+| HSBA_DV   | ✅ | ✅ | – | ✅ |
+| BENH_NHAN | ✅ | – | ✅ (`TIEN_SU_BENH`, `TIEN_SU_BENH_GD`, `DI_UNG_THUOC`) | – |
+| DON_THUOC | ✅ | ✅ | ✅ (`TEN_THUOC`, `LIEU_DUNG`) | ✅ |
+| NHAN_VIEN | ✅ | – | ✅ (`QUE_QUAN`, `SDT`) | – |
+| MV_KTV_LIST | ✅ | – | – | – |
+
+Tính **ép thỏa** thật sự đến từ **VPD** ở tầng dưới — RBAC chỉ quyết định "có được gọi câu DML hay không" và "trên cột nào".
