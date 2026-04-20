@@ -1,6 +1,8 @@
 -- =====================================================
--- 03_assign_roles_to_users.sql
--- Gán role cho từng user Oracle theo vai trò
+-- 04_assign_ktv_bn.sql
+-- Gán role cho các user Oracle:
+--   RL_KYTHUATVIEN : NV0121 -> NV0170 (50 KTV)
+--   RL_BENHNHAN    : BN000001 -> BN100000 (100.000 BN)
 -- Chạy bằng tài khoản ADMIN (DBA)
 -- =====================================================
 
@@ -9,7 +11,7 @@ SET SERVEROUTPUT ON;
 DECLARE
     v_count NUMBER := 0;
 BEGIN
-    -- 1. Gán RL_KYTHUATVIEN cho NV0121 -> NV0170 (50 Kỹ thuật viên)
+    -- 50 Kỹ thuật viên
     FOR v_i IN 121..170 LOOP
         BEGIN
             EXECUTE IMMEDIATE 'GRANT RL_KYTHUATVIEN TO NV' || LPAD(v_i, 4, '0');
@@ -21,7 +23,7 @@ BEGIN
     END LOOP;
     DBMS_OUTPUT.PUT_LINE('Đã gán RL_KYTHUATVIEN cho ' || v_count || ' Kỹ thuật viên.');
 
-    -- 2. Gán RL_BENHNHAN cho BN000001 -> BN100000 (100.000 Bệnh nhân)
+    -- 100.000 Bệnh nhân
     v_count := 0;
     FOR v_i IN 1..100000 LOOP
         BEGIN
@@ -37,6 +39,6 @@ BEGIN
     END LOOP;
     DBMS_OUTPUT.PUT_LINE('Đã gán RL_BENHNHAN cho ' || v_count || ' Bệnh nhân.');
 
-    DBMS_OUTPUT.PUT_LINE('=== Hoàn thành gán Roles cho Users ===');
+    DBMS_OUTPUT.PUT_LINE('=== Hoàn thành gán role KTV + BN ===');
 END;
 /

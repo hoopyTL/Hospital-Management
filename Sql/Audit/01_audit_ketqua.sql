@@ -1,14 +1,16 @@
 -- =====================================================
--- 05_audit_ketqua.sql
+-- 01_audit_ketqua.sql
 -- Ghi vết (audit) mọi thao tác UPDATE trên KET_QUA
 -- TC#4: Các thao tác cập nhật trên trường KẾT QUẢ
---       đều được ghi vết
+--       đều được ghi vết.
 -- Chạy bằng tài khoản ADMIN (DBA)
 -- =====================================================
 
 SET SERVEROUTPUT ON;
 
+-- =====================================================
 -- 1. Tạo bảng audit log
+-- =====================================================
 CREATE TABLE AUDIT_KETQUA (
     audit_id            NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_hsba             VARCHAR2(8),
@@ -20,9 +22,9 @@ CREATE TABLE AUDIT_KETQUA (
     thoi_gian_cap_nhat  TIMESTAMP DEFAULT SYSTIMESTAMP
 );
 
-DBMS_OUTPUT.PUT_LINE('Đã tạo bảng AUDIT_KETQUA.');
-
--- 2. Tạo trigger ghi vết khi UPDATE cột KET_QUA trên HSBA_DV
+-- =====================================================
+-- 2. Trigger ghi vết khi UPDATE cột KET_QUA trên HSBA_DV
+-- =====================================================
 CREATE OR REPLACE TRIGGER TRG_AUDIT_KETQUA
 BEFORE UPDATE OF KET_QUA ON HSBA_DV
 FOR EACH ROW
@@ -40,9 +42,13 @@ BEGIN
 END;
 /
 
-DBMS_OUTPUT.PUT_LINE('Đã tạo trigger TRG_AUDIT_KETQUA.');
-
--- 3. Cấp quyền SELECT trên AUDIT_KETQUA cho KTV (để xem lịch sử nếu cần)
+-- =====================================================
+-- 3. Cấp quyền SELECT cho KTV để xem lịch sử của mình
+-- =====================================================
 GRANT SELECT ON ADMIN.AUDIT_KETQUA TO RL_KYTHUATVIEN;
 
-DBMS_OUTPUT.PUT_LINE('=== Hoàn thành cài đặt Audit cho KET_QUA ===');
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Đã tạo bảng AUDIT_KETQUA và trigger TRG_AUDIT_KETQUA.');
+    DBMS_OUTPUT.PUT_LINE('=== Hoàn thành cài đặt Audit cho KET_QUA ===');
+END;
+/

@@ -1,0 +1,22 @@
+-- 99_cleanup_demo.sql
+SET SERVEROUTPUT ON;
+
+BEGIN
+  FOR r IN (SELECT username FROM dba_users 
+            WHERE username IN ('ATBM_ADMIN','LAB_OWNER','DEV_A','DEV_B','APP_USER1','APP_USER2')) LOOP
+    EXECUTE IMMEDIATE 'DROP USER ' || r.username || ' CASCADE';
+  END LOOP;
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+BEGIN
+  FOR r IN (SELECT role FROM dba_roles 
+            WHERE role IN ('RL_READONLY','RL_ANALYST','RL_PROGRAM')) LOOP
+    EXECUTE IMMEDIATE 'DROP ROLE ' || r.role;
+  END LOOP;
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+PROMPT Demo environment cleaned.

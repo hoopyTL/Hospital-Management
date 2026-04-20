@@ -1,16 +1,21 @@
 -- =====================================================
--- 04_vpd_policies.sql
--- Virtual Private Database - Row Level Security
--- Enforce RBAC ở tầng database (an toàn nhất)
+-- 02_vpd_basic.sql
+-- Virtual Private Database (Row-Level Security) cơ bản:
+--   - HSBA_DV   : KTV chỉ thấy dòng MA_KTV = SESSION_USER  (TC#4)
+--   - NHAN_VIEN : NV chỉ thấy chính mình                    (TC#5)
+--   - BENH_NHAN : BN chỉ thấy chính mình                    (TC#5)
+-- Chú ý: script này sẽ bị OVERRIDE bởi 03_vpd_dpv_bs.sql
+-- cho bảng BENH_NHAN và HSBA_DV (đổi policy name +
+-- function body để hỗ trợ thêm DPV & BS).
 -- Chạy bằng tài khoản ADMIN (DBA)
 -- =====================================================
 
 SET SERVEROUTPUT ON;
 
 -- =====================================================
--- 1. Policy Function cho HSBA_DV
--- KTV chỉ thấy dòng mà MA_KTV = SESSION_USER
--- ADMIN (DBA) thấy tất cả
+-- 1. Policy Function cho HSBA_DV (cơ bản)
+--    KTV chỉ thấy dòng mà MA_KTV = SESSION_USER
+--    ADMIN (DBA) thấy tất cả
 -- =====================================================
 CREATE OR REPLACE FUNCTION fn_policy_hsba_dv (
     p_schema IN VARCHAR2,
@@ -19,20 +24,16 @@ CREATE OR REPLACE FUNCTION fn_policy_hsba_dv (
 AS
     v_user VARCHAR2(30) := SYS_CONTEXT('USERENV', 'SESSION_USER');
 BEGIN
-    -- DBA ADMIN thấy tất cả
     IF v_user = 'ADMIN' THEN
         RETURN '';
     END IF;
-
-    -- Kỹ thuật viên chỉ thấy dòng được phân công
     RETURN 'MA_KTV = ''' || v_user || '''';
 END;
 /
 
 -- =====================================================
 -- 2. Policy Function cho NHAN_VIEN
--- Mỗi nhân viên chỉ thấy row của chính mình
--- ADMIN (DBA) thấy tất cả
+--    Mỗi NV chỉ thấy chính mình; ADMIN thấy tất cả
 -- =====================================================
 CREATE OR REPLACE FUNCTION fn_policy_nhanvien (
     p_schema IN VARCHAR2,
@@ -44,15 +45,13 @@ BEGIN
     IF v_user = 'ADMIN' THEN
         RETURN '';
     END IF;
-
     RETURN 'MA_NV = ''' || v_user || '''';
 END;
 /
 
 -- =====================================================
--- 3. Policy Function cho BENH_NHAN
--- Mỗi bệnh nhân chỉ thấy row của chính mình
--- ADMIN (DBA) thấy tất cả
+-- 3. Policy Function cho BENH_NHAN (cơ bản)
+--    Mỗi BN chỉ thấy chính mình; ADMIN thấy tất cả
 -- =====================================================
 CREATE OR REPLACE FUNCTION fn_policy_benhnhan (
     p_schema IN VARCHAR2,
@@ -64,16 +63,14 @@ BEGIN
     IF v_user = 'ADMIN' THEN
         RETURN '';
     END IF;
-
     RETURN 'MA_BN = ''' || v_user || '''';
 END;
 /
 
 -- =====================================================
--- 4. Đăng ký VPD Policies bằng DBMS_RLS
+-- 4. Đăng ký VPD Policies
 -- =====================================================
 
--- Policy cho HSBA_DV: áp dụng SELECT và UPDATE
 BEGIN
     DBMS_RLS.ADD_POLICY(
         object_schema   => 'ADMIN',
@@ -85,14 +82,12 @@ BEGIN
         update_check    => TRUE,
         enable          => TRUE
     );
-    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy cho HSBA_DV.');
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Policy HSBA_DV đã tồn tại hoặc lỗi: ' || SQLERRM);
+    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy POL_HSBA_DV_KTV.');
+EXCEPTION WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('POL_HSBA_DV_KTV tồn tại / lỗi: ' || SQLERRM);
 END;
 /
 
--- Policy cho NHAN_VIEN: áp dụng SELECT và UPDATE
 BEGIN
     DBMS_RLS.ADD_POLICY(
         object_schema   => 'ADMIN',
@@ -104,14 +99,12 @@ BEGIN
         update_check    => TRUE,
         enable          => TRUE
     );
-    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy cho NHAN_VIEN.');
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Policy NHAN_VIEN đã tồn tại hoặc lỗi: ' || SQLERRM);
+    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy POL_NHANVIEN_SELF.');
+EXCEPTION WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('POL_NHANVIEN_SELF tồn tại / lỗi: ' || SQLERRM);
 END;
 /
 
--- Policy cho BENH_NHAN: áp dụng SELECT và UPDATE
 BEGIN
     DBMS_RLS.ADD_POLICY(
         object_schema   => 'ADMIN',
@@ -123,11 +116,13 @@ BEGIN
         update_check    => TRUE,
         enable          => TRUE
     );
-    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy cho BENH_NHAN.');
-EXCEPTION
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Policy BENH_NHAN đã tồn tại hoặc lỗi: ' || SQLERRM);
+    DBMS_OUTPUT.PUT_LINE('Đã tạo VPD policy POL_BENHNHAN_SELF.');
+EXCEPTION WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('POL_BENHNHAN_SELF tồn tại / lỗi: ' || SQLERRM);
 END;
 /
 
-DBMS_OUTPUT.PUT_LINE('=== Hoàn thành cài đặt VPD Policies ===');
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('=== Hoàn thành cài đặt VPD cơ bản ===');
+END;
+/
