@@ -205,13 +205,23 @@ namespace HospitalManagement.App.Forms
                 }
 
                 // Kiểm tra role để điều hướng
+                bool isDPV = helper.HasRole("RL_DIEUPHOIVIEN");
+                bool isBS = helper.HasRole("RL_BACSI");
                 bool isKTV = helper.HasRole("RL_KYTHUATVIEN");
                 bool isBN = helper.HasRole("RL_BENHNHAN");
 
                 this.Hide();
 
                 Form mainForm;
-                if (isKTV)
+                if (isDPV)
+                {
+                    mainForm = new DieuPhoiVienForm();
+                }
+                else if (isBS)
+                {
+                    mainForm = new BacSiForm();
+                }
+                else if (isKTV)
                 {
                     mainForm = new KyThuatVienForm();
                 }
@@ -221,7 +231,7 @@ namespace HospitalManagement.App.Forms
                 }
                 else
                 {
-                    UIHelper.ShowWarning("Tài khoản của bạn chưa được gán vai trò Kỹ thuật viên hoặc Bệnh nhân.\nVui lòng liên hệ quản trị viên.");
+                    UIHelper.ShowWarning("Tài khoản của bạn chưa được gán vai trò hợp lệ.\nVui lòng liên hệ quản trị viên.");
                     this.Show();
                     btnLogin.Enabled = true;
                     return;

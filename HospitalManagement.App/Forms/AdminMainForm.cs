@@ -253,11 +253,14 @@ public class AdminMainForm : Form
             Padding = new Padding(12)
         };
 
-        toolbar.Controls.AddRange([
-            new Label { Text = "Owner filter:", AutoSize = true, Padding = new Padding(0, 8, 0, 0) },
-            _txtObjectOwnerFilter,
-            new Label { Text = "Gợi ý: nhập LAB_OWNER để xem object mẫu.", AutoSize = true, Padding = new Padding(12, 8, 0, 0) }
-        ]);
+        var btnRefresh = new Button { Text = "Làm mới object", Width = 120, Height = 34 };
+        btnRefresh.Click += (_, _) => LoadObjects();
+
+        _txtObjectOwnerFilter.Text = "LAB_OWNER";
+        _txtObjectOwnerFilter.Enabled = false;
+        _txtObjectOwnerFilter.Visible = false;
+
+        toolbar.Controls.AddRange([btnRefresh]);
 
         _txtObjectOwnerFilter.TextChanged += (_, _) => LoadObjects();
         _dgvObjects.Dock = DockStyle.Fill;
