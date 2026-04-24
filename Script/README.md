@@ -29,10 +29,10 @@ Script/
 │   ├── 99_drop_rbac.sql
 │   └── README.md
 │
-├── VPD/ # Row-Level Security (ép thỏa TC#2,3,4,5)
+├── VPD/ # Row-Level Security cho DPV + BS
 │   ├── 01_fn_get_role.sql
-│   ├── 02_vpd_basic.sql # KTV, BN, NV (self)
-│   ├── 03_vpd_dpv_bs.sql # mở rộng cho DPV + BS; thêm HSBA, DON_THUOC
+│   ├── 02_vpd_basic.sql # NHAN_VIEN self cho DPV/BS; KTV dùng view
+│   ├── 03_vpd_dpv_bs.sql # DPV + BS trên BENH_NHAN, HSBA, HSBA_DV, DON_THUOC
 │   ├── 99_drop_vpd.sql
 │   └── README.md
 │

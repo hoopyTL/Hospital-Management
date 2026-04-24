@@ -182,7 +182,6 @@ namespace HospitalManagement.App.Forms
                         ServiceName = "XEPDB1",
                         UseSysDba = false
                     };
-                    
                     var adminService = new Services.OracleAdminService(settings);
                     adminService.TestConnection();
 
@@ -193,7 +192,7 @@ namespace HospitalManagement.App.Forms
                     return;
                 }
 
-                // Kết nối Oracle bằng chính tài khoản user (để VPD hoạt động đúng)
+                // Kết nối bằng chính tài khoản user để SESSION_USER đúng cho VPD và self-view.
                 var helper = OracleHelper.Initialize(username, password);
 
                 if (!helper.TestConnection())

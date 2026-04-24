@@ -1,6 +1,6 @@
 # VPD – Virtual Private Database (Row-Level Security)
 
-Folder này chứa tầng bảo mật **lọc dòng dữ liệu** bằng `DBMS_RLS`. VPD là lớp ép thỏa TC#2, #3, #4, #5 *ở tầng database* – dù ứng dụng có cố query không đúng vai trò thì Oracle vẫn chặn.
+Folder này chứa tầng bảo mật **lọc dòng dữ liệu** bằng `DBMS_RLS` cho Điều phối viên và Bác sĩ/Y sĩ. Kỹ thuật viên và Bệnh nhân không dùng VPD để lọc dòng; hai nhóm này dùng RBAC + View trong `Script/RBAC/02_grant_ktv_bn.sql`.
 
 ## Phụ thuộc
 
@@ -13,8 +13,8 @@ Bắt buộc phải chạy RBAC trước (ít nhất `Sql/RBAC/01_create_roles.s
 | # | File | Mô tả |
 | - | - | - |
 | 1 | `01_fn_get_role.sql` | Helper function `ADMIN.FN_GET_ROLE` – suy ra role từ `SESSION_USER` (tránh đệ quy VPD) |
-| 2 | `02_vpd_basic.sql`   | Policy cơ bản cho `BENH_NHAN`, `NHAN_VIEN`, `HSBA_DV` (TC#4, TC#5) |
-| 3 | `03_vpd_dpv_bs.sql`  | Mở rộng: thay policy `BENH_NHAN`, `HSBA_DV`; thêm `HSBA`, `DON_THUOC` (TC#2, TC#3) |
+| 2 | `02_vpd_basic.sql`   | Policy cơ bản cho `NHAN_VIEN`: DPV/BS chỉ thấy chính mình; KTV đi qua view |
+| 3 | `03_vpd_dpv_bs.sql`  | Policy cho `BENH_NHAN`, `HSBA_DV`, `HSBA`, `DON_THUOC` phục vụ DPV/BS |
 
 ## Rollback
 
@@ -24,15 +24,13 @@ Bắt buộc phải chạy RBAC trước (ít nhất `Sql/RBAC/01_create_roles.s
 
 | Bảng | Policy | Function | DBA | DPV | BS | KTV | BN |
 | - | - | - | - | - | - | - | - |
-| BENH_NHAN | `POL_BN_RLS`        | `fn_policy_benhnhan`  | all | all | HSBA của mình | 1=0 | self |
+| BENH_NHAN | `POL_BN_RLS`        | `fn_policy_benhnhan`  | all | all | HSBA của mình | không grant base table | no predicate; dùng `V_BENH_NHAN_SELF` |
 | HSBA      | `POL_HSBA_RLS`      | `fn_policy_hsba`      | all | all | `MA_BS = user` | 1=0 | 1=0 |
-| HSBA_DV   | `POL_HSBA_DV_RLS`   | `fn_policy_hsba_dv`   | all | all | HSBA của mình | `MA_KTV = user` | 1=0 |
+| HSBA_DV   | `POL_HSBA_DV_RLS`   | `fn_policy_hsba_dv`   | all | all | HSBA của mình | no predicate; dùng `V_HSBA_DV_KTV` | 1=0 |
 | DON_THUOC | `POL_DON_THUOC_RLS` | `fn_policy_don_thuoc` | all | 1=0 | HSBA của mình | 1=0 | 1=0 |
-| NHAN_VIEN | `POL_NHANVIEN_SELF` | `fn_policy_nhanvien`  | all | self | self | self | — |
+| NHAN_VIEN | `POL_NHANVIEN_SELF` | `fn_policy_nhanvien`  | all | self | self | no predicate; dùng `V_NHAN_VIEN_SELF` | 1=0 |
 
-Tất cả policy đều có:
-- `statement_types = 'SELECT,INSERT,UPDATE,DELETE'`
-- `update_check = TRUE` – đảm bảo người dùng không thể UPDATE/INSERT "ra khỏi" vùng dữ liệu của mình.
+Các policy VPD cho DPV/BS có `update_check = TRUE` để đảm bảo người dùng không thể `UPDATE` / `INSERT` ra khỏi vùng dữ liệu được phép. KTV/BN dùng `WITH CHECK OPTION` ở view để đạt mục tiêu tương tự.
 
 ## Tại sao BS phải dùng `MV_BACSI_LIST` / `MV_KTV_LIST`?
 
@@ -56,6 +54,7 @@ FROM   dba_policies
 WHERE  object_owner = 'ADMIN'
 ORDER  BY object_name, policy_name;
 
--- Thử log bằng BN000001: SELECT * FROM ADMIN.BENH_NHAN;  -> chỉ ra 1 dòng
--- Thử log bằng NV0050   : SELECT COUNT(*) FROM ADMIN.HSBA;-> chỉ HSBA của mình
+-- Thử log bằng BN000001: SELECT * FROM ADMIN.V_BENH_NHAN_SELF; -> chỉ ra 1 dòng
+-- Thử log bằng NV0121  : SELECT * FROM ADMIN.V_HSBA_DV_KTV;    -> chỉ DV của mình
+-- Thử log bằng NV0050  : SELECT COUNT(*) FROM ADMIN.HSBA;      -> chỉ HSBA của mình
 ```

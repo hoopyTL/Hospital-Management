@@ -189,11 +189,11 @@ namespace HospitalManagement.App.Forms
         {
             try
             {
-                // VPD tự động lọc: chỉ thấy row mà MA_BN = SESSION_USER
+                // View tự lọc theo SESSION_USER; bệnh nhân không dùng VPD trên BENH_NHAN.
                 var dt = OracleHelper.Instance.ExecuteQuery(
                     "SELECT MA_BN, TEN_BN, PHAI, NGAY_SINH, CCCD, SO_NHA, TEN_DUONG, " +
                     "QUAN_HUYEN, TINH_TP, TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC " +
-                    "FROM ADMIN.BENH_NHAN");
+                    "FROM ADMIN.V_BENH_NHAN_SELF");
 
                 if (dt.Rows.Count > 0)
                 {
@@ -214,7 +214,7 @@ namespace HospitalManagement.App.Forms
                 }
                 else
                 {
-                    UIHelper.ShowWarning("Không tìm thấy thông tin bệnh nhân. VPD có thể đang hoạt động.");
+                    UIHelper.ShowWarning("Không tìm thấy thông tin bệnh nhân qua view cá nhân.");
                 }
             }
             catch (Exception ex)
@@ -234,18 +234,17 @@ namespace HospitalManagement.App.Forms
                 if (result != DialogResult.Yes) return;
 
                 int affected = OracleHelper.Instance.ExecuteNonQuery(
-                    "UPDATE ADMIN.BENH_NHAN SET " +
+                    "UPDATE ADMIN.V_BENH_NHAN_SELF SET " +
                     "SO_NHA = :sonha, TEN_DUONG = :tenduong, QUAN_HUYEN = :quanhuyen, " +
                     "TINH_TP = :tinhtp, TIEN_SU_BENH = :tsb, TIEN_SU_BENH_GD = :tsbgd, " +
-                    "DI_UNG_THUOC = :dut WHERE MA_BN = :mabn",
+                    "DI_UNG_THUOC = :dut",
                     new OracleParameter("sonha", txtSoNha.Text.Trim()),
                     new OracleParameter("tenduong", txtTenDuong.Text.Trim()),
                     new OracleParameter("quanhuyen", txtQuanHuyen.Text.Trim()),
                     new OracleParameter("tinhtp", txtTinhTP.Text.Trim()),
                     new OracleParameter("tsb", txtTienSuBenh.Text.Trim()),
                     new OracleParameter("tsbgd", txtTienSuBenhGD.Text.Trim()),
-                    new OracleParameter("dut", txtDiUngThuoc.Text.Trim()),
-                    new OracleParameter("mabn", OracleHelper.Instance.CurrentUser));
+                    new OracleParameter("dut", txtDiUngThuoc.Text.Trim()));
 
                 if (affected > 0)
                     UIHelper.ShowSuccess("Đã cập nhật thông tin cá nhân thành công!");

@@ -1,7 +1,8 @@
 -- =====================================================
 -- 99_drop_rbac.sql
 -- Rollback RBAC: revoke role khỏi users, drop role,
--- drop 2 materialized view MV_BACSI_LIST, MV_KTV_LIST.
+-- drop 3 view RBAC cho KTV/BN và 2 materialized view
+-- MV_BACSI_LIST, MV_KTV_LIST.
 -- Để rollback VPD / Audit, dùng:
 --   Sql/VPD/99_drop_vpd.sql
 --   Sql/Audit/99_drop_audit.sql
@@ -40,7 +41,17 @@ END;
 /
 
 -- =====================================================
--- 2. Drop Materialized Views
+-- 2. Drop Views
+-- =====================================================
+BEGIN EXECUTE IMMEDIATE 'DROP VIEW ADMIN.V_HSBA_DV_KTV'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP VIEW ADMIN.V_NHAN_VIEN_SELF'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP VIEW ADMIN.V_BENH_NHAN_SELF'; EXCEPTION WHEN OTHERS THEN NULL; END;
+/
+
+-- =====================================================
+-- 3. Drop Materialized Views
 -- =====================================================
 BEGIN EXECUTE IMMEDIATE 'DROP MATERIALIZED VIEW ADMIN.MV_BACSI_LIST'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /
@@ -48,7 +59,7 @@ BEGIN EXECUTE IMMEDIATE 'DROP MATERIALIZED VIEW ADMIN.MV_KTV_LIST'; EXCEPTION WH
 /
 
 -- =====================================================
--- 3. Drop Roles
+-- 4. Drop Roles
 -- =====================================================
 BEGIN EXECUTE IMMEDIATE 'DROP ROLE RL_KYTHUATVIEN'; EXCEPTION WHEN OTHERS THEN NULL; END;
 /

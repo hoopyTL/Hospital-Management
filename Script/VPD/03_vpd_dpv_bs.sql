@@ -1,9 +1,10 @@
 -- =====================================================
 -- 03_vpd_dpv_bs.sql
--- Mở rộng VPD để ép thỏa TC#2 (DPV) và TC#3 (BS)
--- đồng thời giữ TC#4 (KTV) và TC#5 (self).
+-- Mở rộng VPD để ép thỏa TC#2 (DPV) và TC#3 (BS).
+-- KTV và BN không dùng VPD để lọc dòng; 2 nhóm này truy cập qua view
+-- được tạo trong RBAC/02_grant_ktv_bn.sql.
 --
--- Thay thế 2 policy cũ ở 02_vpd_basic.sql:
+-- Thay thế policy cũ nếu còn tồn tại từ bản script trước:
 --   POL_BENHNHAN_SELF  -> POL_BN_RLS
 --   POL_HSBA_DV_KTV    -> POL_HSBA_DV_RLS
 -- Thêm mới:
@@ -48,12 +49,12 @@ BEGIN DBMS_RLS.DROP_POLICY('ADMIN', 'DON_THUOC',  'POL_DON_THUOC_RLS'); EXCEPTIO
 /
 
 -- =====================================================
--- 2. Policy function BENH_NHAN (mở rộng)
+-- 2. Policy function BENH_NHAN
 --    DBA           : ''
---    DIEUPHOIVIEN  : ''               (TC#2)
+--    DIEUPHOIVIEN  : ''                      (TC#2)
 --    BACSI         : BN thuộc HSBA của mình  (TC#3d)
---    BENHNHAN      : chính mình       (TC#5)
---    khác          : '1=0'            (chặn KTV, UNKNOWN)
+--    BENHNHAN      : ''                      (lọc bằng V_BENH_NHAN_SELF)
+--    khác          : '1=0'
 -- =====================================================
 CREATE OR REPLACE FUNCTION admin.fn_policy_benhnhan (
     p_schema IN VARCHAR2,
@@ -70,7 +71,7 @@ BEGIN
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_BN IN (SELECT MA_BN FROM ADMIN.HSBA WHERE MA_BS = ''' || v_user || ''')';
     ELSIF v_role = 'BENHNHAN' THEN
-        RETURN 'MA_BN = ''' || v_user || '''';
+        RETURN '';
     ELSE
         RETURN '1=0';
     END IF;
@@ -78,7 +79,12 @@ END;
 /
 
 -- =====================================================
--- 3. Policy function HSBA_DV (mở rộng)
+-- 3. Policy function HSBA_DV
+--    DBA           : ''
+--    DIEUPHOIVIEN  : ''                         (TC#2)
+--    BACSI         : HSBA do mình phụ trách      (TC#3)
+--    KYTHUATVIEN   : ''                         (lọc bằng V_HSBA_DV_KTV)
+--    khác          : '1=0'
 -- =====================================================
 CREATE OR REPLACE FUNCTION admin.fn_policy_hsba_dv (
     p_schema IN VARCHAR2,
@@ -95,7 +101,7 @@ BEGIN
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_HSBA IN (SELECT MA_HSBA FROM ADMIN.HSBA WHERE MA_BS = ''' || v_user || ''')';
     ELSIF v_role = 'KYTHUATVIEN' THEN
-        RETURN 'MA_KTV = ''' || v_user || '''';
+        RETURN '';
     ELSE
         RETURN '1=0';
     END IF;

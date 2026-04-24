@@ -255,9 +255,9 @@ namespace HospitalManagement.App.Forms
                     return;
                 }
 
-                // VPD tự động lọc: chỉ thấy rows mà MA_KTV = SESSION_USER
+                // View tự lọc theo SESSION_USER; KTV không dùng VPD trên HSBA_DV.
                 var dt = OracleHelper.Instance.ExecuteQuery(
-                    "SELECT MA_HSBA, LOAI_DV, NGAY_DV, MA_KTV, KET_QUA FROM ADMIN.HSBA_DV ORDER BY NGAY_DV DESC");
+                    "SELECT MA_HSBA, LOAI_DV, NGAY_DV, MA_KTV, KET_QUA FROM ADMIN.V_HSBA_DV_KTV ORDER BY NGAY_DV DESC");
 
                 dgvDichVu.DataSource = dt;
 
@@ -308,7 +308,7 @@ namespace HospitalManagement.App.Forms
 
                 if (dt != null)
                 {
-                    lblDvCount.Text = $"Tổng số dịch vụ: {dt.Rows.Count} | Chỉ hiển thị dịch vụ do bạn thực hiện (VPD)";
+                    lblDvCount.Text = $"Tổng số dịch vụ: {dt.Rows.Count} | Chỉ hiển thị dịch vụ do bạn thực hiện (View)";
                 }
             }
             catch (Exception ex)
@@ -336,7 +336,7 @@ namespace HospitalManagement.App.Forms
                         string ketQua = row["KET_QUA"].ToString();
 
                         OracleHelper.Instance.ExecuteNonQuery(
-                            "UPDATE ADMIN.HSBA_DV SET KET_QUA = :ketqua " +
+                            "UPDATE ADMIN.V_HSBA_DV_KTV SET KET_QUA = :ketqua " +
                             "WHERE MA_HSBA = :mahsba AND LOAI_DV = :loaidv AND NGAY_DV = :ngaydv",
                             new OracleParameter("ketqua", ketQua),
                             new OracleParameter("mahsba", maHsba),
@@ -367,9 +367,9 @@ namespace HospitalManagement.App.Forms
         {
             try
             {
-                // VPD tự động lọc: chỉ thấy row mà MA_NV = SESSION_USER
+                // View tự lọc theo SESSION_USER; KTV không dùng VPD trên NHAN_VIEN.
                 var dt = OracleHelper.Instance.ExecuteQuery(
-                    "SELECT MA_NV, HO_TEN, PHAI, NGAY_SINH, CMND, QUE_QUAN, SDT, VAI_TRO, CHUYEN_KHOA FROM ADMIN.NHAN_VIEN");
+                    "SELECT MA_NV, HO_TEN, PHAI, NGAY_SINH, CMND, QUE_QUAN, SDT, VAI_TRO, CHUYEN_KHOA FROM ADMIN.V_NHAN_VIEN_SELF");
 
                 if (dt.Rows.Count > 0)
                 {
@@ -403,10 +403,9 @@ namespace HospitalManagement.App.Forms
                 if (result != DialogResult.Yes) return;
 
                 int affected = OracleHelper.Instance.ExecuteNonQuery(
-                    "UPDATE ADMIN.NHAN_VIEN SET QUE_QUAN = :quequan, SDT = :sdt WHERE MA_NV = :manv",
+                    "UPDATE ADMIN.V_NHAN_VIEN_SELF SET QUE_QUAN = :quequan, SDT = :sdt",
                     new OracleParameter("quequan", txtQueQuan.Text.Trim()),
-                    new OracleParameter("sdt", txtSDT.Text.Trim()),
-                    new OracleParameter("manv", OracleHelper.Instance.CurrentUser));
+                    new OracleParameter("sdt", txtSDT.Text.Trim()));
 
                 if (affected > 0)
                     UIHelper.ShowSuccess("Đã cập nhật thông tin cá nhân thành công!");
