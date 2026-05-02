@@ -1,0 +1,98 @@
+-- =====================================================
+-- 03_grant_dpv_bs.sql
+-- Cấp quyền object/column-level cho 2 role:
+--   RL_DIEUPHOIVIEN (TC#2)
+--   RL_BACSI        (TC#3)
+-- Đồng thời tạo 2 materialized view MV_BACSI_LIST,
+-- MV_KTV_LIST để DPV/BS có thể lấy danh sách BS/KTV lên
+-- dropdown (MV không bị VPD trên NHAN_VIEN chặn).
+-- Chạy bằng tài khoản ADMIN (DBA)
+-- =====================================================
+
+SET SERVEROUTPUT ON;
+
+-- =====================================================
+-- 1. Materialized view danh sách Bác sĩ / KTV
+--    MV không áp VPD nên DPV/BS query được toàn bộ.
+--    Dữ liệu nhân viên trong đồ án là cố định, refresh
+--    on demand khi DBA cập nhật danh sách nhân viên.
+-- =====================================================
+BEGIN
+    EXECUTE IMMEDIATE 'DROP MATERIALIZED VIEW ADMIN.MV_BACSI_LIST';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+BEGIN
+    EXECUTE IMMEDIATE 'DROP MATERIALIZED VIEW ADMIN.MV_KTV_LIST';
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+CREATE MATERIALIZED VIEW ADMIN.MV_BACSI_LIST
+    BUILD IMMEDIATE
+    REFRESH COMPLETE ON DEMAND
+AS
+    SELECT MA_NV, HO_TEN, CHUYEN_KHOA
+    FROM   ADMIN.NHAN_VIEN
+    WHERE  VAI_TRO = N'Bác sĩ/Y sĩ';
+
+CREATE MATERIALIZED VIEW ADMIN.MV_KTV_LIST
+    BUILD IMMEDIATE
+    REFRESH COMPLETE ON DEMAND
+AS
+    SELECT MA_NV, HO_TEN, CHUYEN_KHOA
+    FROM   ADMIN.NHAN_VIEN
+    WHERE  VAI_TRO = N'Kỹ thuật viên';
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Đã tạo MV_BACSI_LIST và MV_KTV_LIST.');
+END;
+/
+
+-- =====================================================
+-- 2. Cấp quyền cho RL_DIEUPHOIVIEN (TC#2)
+-- =====================================================
+GRANT SELECT, INSERT ON ADMIN.BENH_NHAN TO RL_DIEUPHOIVIEN;
+GRANT UPDATE (TEN_BN, PHAI, NGAY_SINH, CCCD,
+              SO_NHA, TEN_DUONG, QUAN_HUYEN, TINH_TP,
+              TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC)
+    ON ADMIN.BENH_NHAN TO RL_DIEUPHOIVIEN;
+
+GRANT SELECT, INSERT ON ADMIN.HSBA TO RL_DIEUPHOIVIEN;
+GRANT UPDATE (MA_KHOA, MA_BS) ON ADMIN.HSBA TO RL_DIEUPHOIVIEN;
+
+GRANT SELECT, INSERT ON ADMIN.HSBA_DV TO RL_DIEUPHOIVIEN;
+GRANT UPDATE (MA_KTV) ON ADMIN.HSBA_DV TO RL_DIEUPHOIVIEN;
+
+GRANT SELECT ON ADMIN.NHAN_VIEN TO RL_DIEUPHOIVIEN;
+GRANT UPDATE (QUE_QUAN, SDT) ON ADMIN.NHAN_VIEN TO RL_DIEUPHOIVIEN;
+
+GRANT SELECT ON ADMIN.MV_BACSI_LIST TO RL_DIEUPHOIVIEN;
+GRANT SELECT ON ADMIN.MV_KTV_LIST   TO RL_DIEUPHOIVIEN;
+
+-- =====================================================
+-- 3. Cấp quyền cho RL_BACSI (TC#3)
+-- =====================================================
+GRANT SELECT ON ADMIN.HSBA TO RL_BACSI;
+GRANT UPDATE (CHUAN_DOAN, DIEU_TRI, KET_LUAN) ON ADMIN.HSBA TO RL_BACSI;
+
+GRANT SELECT, INSERT, DELETE ON ADMIN.HSBA_DV TO RL_BACSI;
+
+GRANT SELECT ON ADMIN.BENH_NHAN TO RL_BACSI;
+GRANT UPDATE (TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC)
+    ON ADMIN.BENH_NHAN TO RL_BACSI;
+
+GRANT SELECT, INSERT, DELETE ON ADMIN.DON_THUOC TO RL_BACSI;
+GRANT UPDATE (TEN_THUOC, LIEU_DUNG) ON ADMIN.DON_THUOC TO RL_BACSI;
+
+GRANT SELECT ON ADMIN.NHAN_VIEN TO RL_BACSI;
+GRANT UPDATE (QUE_QUAN, SDT) ON ADMIN.NHAN_VIEN TO RL_BACSI;
+
+GRANT SELECT ON ADMIN.MV_KTV_LIST TO RL_BACSI;
+
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Đã cấp quyền cho RL_DIEUPHOIVIEN.');
+    DBMS_OUTPUT.PUT_LINE('Đã cấp quyền cho RL_BACSI.');
+    DBMS_OUTPUT.PUT_LINE('=== Hoàn thành cấp quyền DPV + BS ===');
+END;
+/

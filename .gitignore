@@ -1,0 +1,11 @@
+docs/
+# Visual Studio files
+.vs/
+[Bb]in/
+[Ob]j/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Packages
+*.nuget
