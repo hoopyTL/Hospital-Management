@@ -483,16 +483,16 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\nguye\\.nuget\\packages\\": {}
+    "C:\\Users\\nguye\\Downloads\\Hospital-Management\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\HospitalManagement.App.csproj",
+      "projectUniqueName": "C:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\HospitalManagement.App.csproj",
       "projectName": "HospitalManagement.App",
-      "projectPath": "c:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\HospitalManagement.App.csproj",
-      "packagesPath": "C:\\Users\\nguye\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\obj\\",
+      "projectPath": "C:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\HospitalManagement.App.csproj",
+      "packagesPath": "C:\\Users\\nguye\\Downloads\\Hospital-Management\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\nguye\\Downloads\\Hospital-Management\\ATBM2026-ATBM-06\\01-ATBM-06-SourceCode\\HospitalManagement.App\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\nguye\\AppData\\Roaming\\NuGet\\NuGet.Config",

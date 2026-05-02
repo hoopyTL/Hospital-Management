@@ -34,7 +34,7 @@ AS
     v_role VARCHAR2(20) := admin.fn_get_role;
 BEGIN
     IF v_role IN ('DBA', 'KYTHUATVIEN') THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role IN ('DIEUPHOIVIEN', 'BACSI') THEN
         RETURN 'MA_NV = ''' || v_user || '''';
     ELSE

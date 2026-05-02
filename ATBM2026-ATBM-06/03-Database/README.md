@@ -8,12 +8,14 @@ Thư mục **`03-Database`** (submission ATBM): script CSDL Oracle cho PH1 & PH2
 
 ```
 03-Database/   hoặc   <thư-mục-gốc-script>/
-├── initDB.sql # Tạo ADMIN + tables (chạy bằng SYSDBA)
-├── insertData.sql # Sinh 170 NV + 100K BN + HSBA/DV/DT
-├── createUser.sql # Tạo 100K+ user Oracle
-├── dropAllTable.sql / dropAllUser.sql / fix_cleanup_sys.sql
-├── run_01_as_sysdba.sql # Orchestration bước 1 (SYSDBA)
-├── run_02_as_admin.sql # Orchestration bước 2 (ADMIN) – gọi đủ 3 tầng bên dưới
+├── Schema/ # Script cơ sở (Tạo schema, data, user, orchestration)
+│   ├── initDB.sql # Tạo ADMIN + tables (chạy bằng SYSDBA)
+│   ├── insertData.sql # Sinh 170 NV + 100K BN + HSBA/DV/DT
+│   ├── createUser.sql # Tạo 100K+ user Oracle
+│   ├── dropAllTable.sql / dropAllUser.sql / fix_cleanup_sys.sql
+│   ├── run_01_as_sysdba.sql # Orchestration bước 1 (SYSDBA)
+│   └── run_02_as_admin.sql # Orchestration bước 2 (ADMIN) – gọi đủ 3 tầng bên dưới
+│
 │
 ├── Admin/ # Phân hệ 1 – Quản trị Oracle (ATBM_ADMIN)
 │   ├── 00_bootstrap_demo.sql # tạo ATBM_ADMIN, LAB_OWNER, user/role demo
@@ -58,14 +60,14 @@ Thư mục **`03-Database`** (submission ATBM): script CSDL Oracle cho PH1 & PH2
 
 ### Bước 1 – đăng nhập `SYS AS SYSDBA` vào PDB `XEPDB1`
 
-F5 file `initDB.sql` (hoặc `run_01_as_sysdba.sql`).
+F5 file `Schema/initDB.sql` (hoặc `Schema/run_01_as_sysdba.sql`).
 
 ### Bước 2 – đăng nhập `ADMIN / 12345` vào PDB `XEPDB1`
 
-F5 file `run_02_as_admin.sql`. Script sẽ gọi lần lượt:
+F5 file `Schema/run_02_as_admin.sql`. Script sẽ gọi lần lượt:
 
-1. `insertData.sql` (vài phút)
-2. `createUser.sql` (15–30 phút)
+1. `Schema/insertData.sql` (vài phút)
+2. `Schema/createUser.sql` (15–30 phút)
 3. `RBAC/01_create_roles.sql`
 4. `RBAC/02_grant_ktv_bn.sql`
 5. `RBAC/03_grant_dpv_bs.sql`
@@ -95,6 +97,6 @@ Drop theo **thứ tự ngược lại** (Audit → VPD → RBAC):
 Audit/99_drop_audit.sql
 VPD/99_drop_vpd.sql
 RBAC/99_drop_rbac.sql
-dropAllUser.sql       (rất lâu - 100K user)
-dropAllTable.sql
+Schema/dropAllUser.sql       (rất lâu - 100K user)
+Schema/dropAllTable.sql
 ```

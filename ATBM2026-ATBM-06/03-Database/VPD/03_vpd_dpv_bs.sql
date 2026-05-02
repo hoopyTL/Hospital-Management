@@ -65,13 +65,13 @@ AS
     v_role VARCHAR2(20) := admin.fn_get_role;
 BEGIN
     IF v_role = 'DBA' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'DIEUPHOIVIEN' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_BN IN (SELECT MA_BN FROM ADMIN.HSBA WHERE MA_BS = ''' || v_user || ''')';
     ELSIF v_role = 'BENHNHAN' THEN
-        RETURN '';
+        RETURN NULL;
     ELSE
         RETURN '1=0';
     END IF;
@@ -95,13 +95,13 @@ AS
     v_role VARCHAR2(20) := admin.fn_get_role;
 BEGIN
     IF v_role = 'DBA' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'DIEUPHOIVIEN' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_HSBA IN (SELECT MA_HSBA FROM ADMIN.HSBA WHERE MA_BS = ''' || v_user || ''')';
     ELSIF v_role = 'KYTHUATVIEN' THEN
-        RETURN '';
+        RETURN NULL;
     ELSE
         RETURN '1=0';
     END IF;
@@ -120,9 +120,9 @@ AS
     v_role VARCHAR2(20) := admin.fn_get_role;
 BEGIN
     IF v_role = 'DBA' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'DIEUPHOIVIEN' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_BS = ''' || v_user || '''';
     ELSE
@@ -143,7 +143,7 @@ AS
     v_role VARCHAR2(20) := admin.fn_get_role;
 BEGIN
     IF v_role = 'DBA' THEN
-        RETURN '';
+        RETURN NULL;
     ELSIF v_role = 'BACSI' THEN
         RETURN 'MA_HSBA IN (SELECT MA_HSBA FROM ADMIN.HSBA WHERE MA_BS = ''' || v_user || ''')';
     ELSE
