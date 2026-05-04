@@ -9,8 +9,18 @@
 SET SERVEROUTPUT ON;
 
 -- =====================================================
--- 1. Tạo bảng audit log
+-- 1. Tạo bảng audit log (DROP if exists)
 -- =====================================================
+DECLARE
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM user_tables WHERE table_name = 'AUDIT_KETQUA';
+    IF v_count > 0 THEN
+        EXECUTE IMMEDIATE 'DROP TABLE AUDIT_KETQUA CASCADE CONSTRAINTS';
+    END IF;
+END;
+/
+
 CREATE TABLE AUDIT_KETQUA (
     audit_id            NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     ma_hsba             VARCHAR2(8),
@@ -26,7 +36,7 @@ CREATE TABLE AUDIT_KETQUA (
 -- 2. Trigger ghi vết khi UPDATE cột KET_QUA trên HSBA_DV
 -- =====================================================
 CREATE OR REPLACE TRIGGER TRG_AUDIT_KETQUA
-BEFORE UPDATE OF KET_QUA ON HSBA_DV
+BEFORE UPDATE OF KET_QUA ON admin.HSBA_DV
 FOR EACH ROW
 BEGIN
     INSERT INTO AUDIT_KETQUA (
