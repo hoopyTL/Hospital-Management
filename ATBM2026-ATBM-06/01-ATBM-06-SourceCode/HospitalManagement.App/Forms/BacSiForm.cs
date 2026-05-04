@@ -779,16 +779,15 @@ namespace HospitalManagement.App.Forms
                 int ok = 0;
                 foreach (DataRow row in changes.Rows)
                 {
-                    // TEN_THUOC là part của PK - đổi TEN_THUOC cần cách xử lý khác
-                    // (xóa + insert). Ở đây ta chỉ cho update LIEU_DUNG thật sự, và TEN_THUOC cũ.
-                    OracleHelper.Instance.ExecuteNonQuery(
-                        "UPDATE ADMIN.DON_THUOC SET LIEU_DUNG = :ld " +
+                    var affected = OracleHelper.Instance.ExecuteNonQuery(
+                        "UPDATE ADMIN.DON_THUOC SET TEN_THUOC = :new_tt, LIEU_DUNG = :ld " +
                         "WHERE MA_HSBA = :mh AND NGAY_DT = :ng AND TEN_THUOC = :tt",
+                        OracleHelper.ParamNvarchar2("new_tt", row["TEN_THUOC"] ?? DBNull.Value),
                         OracleHelper.ParamNvarchar2("ld", row["LIEU_DUNG"] ?? DBNull.Value),
                         new OracleParameter("mh", row["MA_HSBA", DataRowVersion.Original]),
                         new OracleParameter("ng", row["NGAY_DT", DataRowVersion.Original]),
                         OracleHelper.ParamNvarchar2("tt", row["TEN_THUOC", DataRowVersion.Original]));
-                    ok++;
+                    ok += affected;
                 }
                 dt.AcceptChanges();
                 UIHelper.ShowSuccess($"Đã cập nhật {ok} dòng.");

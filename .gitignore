@@ -18,5 +18,8 @@ docs/
 node_modules/
 .idea/
 
+# Local-only lightweight database demo scripts.
+ATBM2026-ATBM-06/03-Database/_LocalDemo/
+
 [Tt]umbs.db
 [Dd]esktop.ini
