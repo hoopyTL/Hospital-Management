@@ -237,9 +237,9 @@ namespace HospitalManagement.App.Forms
                     OracleHelper.Instance.ExecuteNonQuery(
                         "UPDATE ADMIN.HSBA SET CHUAN_DOAN = :cd, DIEU_TRI = :dt, KET_LUAN = :kl " +
                         "WHERE MA_HSBA = :mh",
-                        new OracleParameter("cd", row["CHUAN_DOAN"] ?? DBNull.Value),
-                        new OracleParameter("dt", row["DIEU_TRI"] ?? DBNull.Value),
-                        new OracleParameter("kl", row["KET_LUAN"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("cd", row["CHUAN_DOAN"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("dt", row["DIEU_TRI"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("kl", row["KET_LUAN"] ?? DBNull.Value),
                         new OracleParameter("mh", row["MA_HSBA"]));
                     ok++;
                 }
@@ -389,11 +389,11 @@ namespace HospitalManagement.App.Forms
                     "INSERT INTO ADMIN.HSBA_DV (MA_HSBA, LOAI_DV, NGAY_DV, MA_KTV, KET_QUA) " +
                     "VALUES (:mh, :ldv, :ng, :mk, :kq)",
                     new OracleParameter("mh", txtNewDv_MaHsba.Text.Trim()),
-                    new OracleParameter("ldv", txtNewDv_LoaiDv.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("ldv", txtNewDv_LoaiDv.Text.Trim()),
                     new OracleParameter("ng", dtpNewDv_Ngay.Value.Date),
                     new OracleParameter("mk", maKtv),
-                    new OracleParameter("kq", string.IsNullOrWhiteSpace(txtNewDv_KetQua.Text)
-                        ? (object)DBNull.Value : txtNewDv_KetQua.Text.Trim()));
+                    OracleHelper.ParamNvarchar2("kq", string.IsNullOrWhiteSpace(txtNewDv_KetQua.Text)
+                        ? DBNull.Value : txtNewDv_KetQua.Text.Trim()));
                 UIHelper.ShowSuccess("Đã thêm dịch vụ.");
                 ShowNewDvPanel(false);
                 LoadDV();
@@ -467,7 +467,7 @@ namespace HospitalManagement.App.Forms
                 OracleHelper.Instance.ExecuteNonQuery(
                     "DELETE FROM ADMIN.HSBA_DV WHERE MA_HSBA = :mh AND LOAI_DV = :ldv AND NGAY_DV = :ng",
                     new OracleParameter("mh", row.Cells["MA_HSBA"].Value),
-                    new OracleParameter("ldv", row.Cells["LOAI_DV"].Value),
+                    OracleHelper.ParamNvarchar2("ldv", row.Cells["LOAI_DV"].Value ?? DBNull.Value),
                     new OracleParameter("ng", row.Cells["NGAY_DV"].Value));
                 UIHelper.ShowSuccess("Đã xóa dịch vụ.");
                 LoadDV();
@@ -576,9 +576,9 @@ namespace HospitalManagement.App.Forms
                     OracleHelper.Instance.ExecuteNonQuery(
                         "UPDATE ADMIN.BENH_NHAN SET TIEN_SU_BENH = :tsb, TIEN_SU_BENH_GD = :tsbgd, " +
                         "DI_UNG_THUOC = :dut WHERE MA_BN = :mb",
-                        new OracleParameter("tsb", row["TIEN_SU_BENH"] ?? DBNull.Value),
-                        new OracleParameter("tsbgd", row["TIEN_SU_BENH_GD"] ?? DBNull.Value),
-                        new OracleParameter("dut", row["DI_UNG_THUOC"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsb", row["TIEN_SU_BENH"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsbgd", row["TIEN_SU_BENH_GD"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("dut", row["DI_UNG_THUOC"] ?? DBNull.Value),
                         new OracleParameter("mb", row["MA_BN"]));
                     ok++;
                 }
@@ -716,8 +716,8 @@ namespace HospitalManagement.App.Forms
                     "VALUES (:mh, :ng, :tt, :ld)",
                     new OracleParameter("mh", txtNewDt_MaHsba.Text.Trim()),
                     new OracleParameter("ng", dtpNewDt_Ngay.Value.Date),
-                    new OracleParameter("tt", txtNewDt_TenThuoc.Text.Trim()),
-                    new OracleParameter("ld", txtNewDt_LieuDung.Text.Trim()));
+                    OracleHelper.ParamNvarchar2("tt", txtNewDt_TenThuoc.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("ld", txtNewDt_LieuDung.Text.Trim()));
                 UIHelper.ShowSuccess("Đã thêm đơn thuốc.");
                 ShowNewDtPanel(false);
                 LoadDT();
@@ -784,10 +784,10 @@ namespace HospitalManagement.App.Forms
                     OracleHelper.Instance.ExecuteNonQuery(
                         "UPDATE ADMIN.DON_THUOC SET LIEU_DUNG = :ld " +
                         "WHERE MA_HSBA = :mh AND NGAY_DT = :ng AND TEN_THUOC = :tt",
-                        new OracleParameter("ld", row["LIEU_DUNG"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("ld", row["LIEU_DUNG"] ?? DBNull.Value),
                         new OracleParameter("mh", row["MA_HSBA", DataRowVersion.Original]),
                         new OracleParameter("ng", row["NGAY_DT", DataRowVersion.Original]),
-                        new OracleParameter("tt", row["TEN_THUOC", DataRowVersion.Original]));
+                        OracleHelper.ParamNvarchar2("tt", row["TEN_THUOC", DataRowVersion.Original]));
                     ok++;
                 }
                 dt.AcceptChanges();
@@ -812,7 +812,7 @@ namespace HospitalManagement.App.Forms
                     "DELETE FROM ADMIN.DON_THUOC WHERE MA_HSBA = :mh AND NGAY_DT = :ng AND TEN_THUOC = :tt",
                     new OracleParameter("mh", row.Cells["MA_HSBA"].Value),
                     new OracleParameter("ng", row.Cells["NGAY_DT"].Value),
-                    new OracleParameter("tt", row.Cells["TEN_THUOC"].Value));
+                    OracleHelper.ParamNvarchar2("tt", row.Cells["TEN_THUOC"].Value ?? DBNull.Value));
                 UIHelper.ShowSuccess("Đã xóa.");
                 LoadDT();
             }
@@ -910,7 +910,7 @@ namespace HospitalManagement.App.Forms
             {
                 OracleHelper.Instance.ExecuteNonQuery(
                     "UPDATE ADMIN.NHAN_VIEN SET QUE_QUAN = :qq, SDT = :sdt WHERE MA_NV = :mn",
-                    new OracleParameter("qq", txtQueQuan.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("qq", txtQueQuan.Text.Trim()),
                     new OracleParameter("sdt", txtSDT.Text.Trim()),
                     new OracleParameter("mn", OracleHelper.Instance.CurrentUser));
                 UIHelper.ShowSuccess("Đã cập nhật.");

@@ -164,21 +164,24 @@ namespace HospitalManagement.App.Forms
             };
 
             var lblSearch = UIHelper.CreateLabel("🔍 Tìm kiếm:");
+            lblSearch.AutoSize = false;
+            lblSearch.Size = new Size(158, 28);
+            lblSearch.TextAlign = ContentAlignment.MiddleLeft;
             lblSearch.Location = new Point(15, 50);
 
             txtSearchBN = UIHelper.CreateTextBox(260);
-            txtSearchBN.Location = new Point(110, 47);
+            txtSearchBN.Location = new Point(178, 47);
             txtSearchBN.KeyDown += (s, e) =>
             {
                 if (e.KeyCode == Keys.Enter) { LoadBenhNhan(); e.Handled = e.SuppressKeyPress = true; }
             };
 
             btnSearchBN = UIHelper.CreateButton("Tìm", UIHelper.PrimaryBlue, 90, 36);
-            btnSearchBN.Location = new Point(380, 47);
+            btnSearchBN.Location = new Point(448, 47);
             btnSearchBN.Click += (s, e) => LoadBenhNhan();
 
             btnRefreshBN = UIHelper.CreateButton("🔄 Làm mới", UIHelper.SecondaryDark, 110, 36);
-            btnRefreshBN.Location = new Point(480, 47);
+            btnRefreshBN.Location = new Point(548, 47);
             btnRefreshBN.Click += (s, e) => { txtSearchBN.Text = ""; LoadBenhNhan(); };
 
             btnThemBN = UIHelper.CreateButton("➕ Thêm BN", UIHelper.AccentGreen, 130, 36);
@@ -232,7 +235,7 @@ namespace HospitalManagement.App.Forms
                           "WHERE UPPER(MA_BN) LIKE :kw OR UPPER(TEN_BN) LIKE :kw OR CCCD LIKE :kw " +
                           "ORDER BY MA_BN FETCH FIRST 500 ROWS ONLY";
                     string kw = "%" + keyword.ToUpper() + "%";
-                    prms = new[] { new OracleParameter("kw", kw) };
+                    prms = new[] { OracleHelper.ParamNvarchar2("kw", kw) };
                 }
 
                 var dt = OracleHelper.Instance.ExecuteQuery(sql, prms);
@@ -295,18 +298,18 @@ namespace HospitalManagement.App.Forms
                         "SO_NHA = :sn, TEN_DUONG = :td, QUAN_HUYEN = :qh, TINH_TP = :tp, " +
                         "TIEN_SU_BENH = :tsb, TIEN_SU_BENH_GD = :tsbgd, DI_UNG_THUOC = :dut " +
                         "WHERE MA_BN = :mabn",
-                        new OracleParameter("tenbn", row["TEN_BN"] ?? DBNull.Value),
-                        new OracleParameter("phai", row["PHAI"] ?? DBNull.Value),
+                        new OracleParameter("mabn", row["MA_BN"]),
+                        OracleHelper.ParamNvarchar2("tenbn", row["TEN_BN"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("phai", row["PHAI"] ?? DBNull.Value),
                         new OracleParameter("ngs", row["NGAY_SINH"] ?? DBNull.Value),
                         new OracleParameter("cccd", row["CCCD"] ?? DBNull.Value),
-                        new OracleParameter("sn", row["SO_NHA"] ?? DBNull.Value),
-                        new OracleParameter("td", row["TEN_DUONG"] ?? DBNull.Value),
-                        new OracleParameter("qh", row["QUAN_HUYEN"] ?? DBNull.Value),
-                        new OracleParameter("tp", row["TINH_TP"] ?? DBNull.Value),
-                        new OracleParameter("tsb", row["TIEN_SU_BENH"] ?? DBNull.Value),
-                        new OracleParameter("tsbgd", row["TIEN_SU_BENH_GD"] ?? DBNull.Value),
-                        new OracleParameter("dut", row["DI_UNG_THUOC"] ?? DBNull.Value),
-                        new OracleParameter("mabn", row["MA_BN"]));
+                        OracleHelper.ParamNvarchar2("sn", row["SO_NHA"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("td", row["TEN_DUONG"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("qh", row["QUAN_HUYEN"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tp", row["TINH_TP"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsb", row["TIEN_SU_BENH"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsbgd", row["TIEN_SU_BENH_GD"] ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("dut", row["DI_UNG_THUOC"] ?? DBNull.Value));
                     ok++;
                 }
                 dt.AcceptChanges();
@@ -325,23 +328,24 @@ namespace HospitalManagement.App.Forms
 
             try
             {
-                OracleHelper.Instance.ExecuteNonQuery(
-                    "INSERT INTO ADMIN.BENH_NHAN (MA_BN, TEN_BN, PHAI, NGAY_SINH, CCCD, " +
-                    "SO_NHA, TEN_DUONG, QUAN_HUYEN, TINH_TP, TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC) " +
-                    "VALUES (:mabn, :tenbn, :phai, :ngs, :cccd, :sn, :td, :qh, :tp, :tsb, :tsbgd, :dut)",
-                    new OracleParameter("mabn", dlg.MaBN),
-                    new OracleParameter("tenbn", dlg.TenBN),
-                    new OracleParameter("phai", dlg.Phai),
-                    new OracleParameter("ngs", dlg.NgaySinh),
-                    new OracleParameter("cccd", dlg.CCCD),
-                    new OracleParameter("sn", (object)dlg.SoNha ?? DBNull.Value),
-                    new OracleParameter("td", (object)dlg.TenDuong ?? DBNull.Value),
-                    new OracleParameter("qh", (object)dlg.QuanHuyen ?? DBNull.Value),
-                    new OracleParameter("tp", (object)dlg.TinhTP ?? DBNull.Value),
-                    new OracleParameter("tsb", (object)dlg.TienSuBenh ?? DBNull.Value),
-                    new OracleParameter("tsbgd", (object)dlg.TienSuBenhGD ?? DBNull.Value),
-                    new OracleParameter("dut", (object)dlg.DiUngThuoc ?? DBNull.Value));
-                UIHelper.ShowSuccess("Đã thêm bệnh nhân mới.");
+                string mabn = OracleHelper.Instance.AllocNextMaBenhNhan();
+                    OracleHelper.Instance.ExecuteNonQuery(
+                        "INSERT INTO ADMIN.BENH_NHAN (MA_BN, TEN_BN, PHAI, NGAY_SINH, CCCD, " +
+                        "SO_NHA, TEN_DUONG, QUAN_HUYEN, TINH_TP, TIEN_SU_BENH, TIEN_SU_BENH_GD, DI_UNG_THUOC) " +
+                        "VALUES (:mabn, :tenbn, :phai, :ngs, :cccd, :sn, :td, :qh, :tp, :tsb, :tsbgd, :dut)",
+                        new OracleParameter("mabn", mabn),
+                        OracleHelper.ParamNvarchar2("tenbn", dlg.TenBN),
+                        OracleHelper.ParamNvarchar2("phai", dlg.Phai ?? (object)DBNull.Value),
+                        new OracleParameter("ngs", dlg.NgaySinh),
+                        new OracleParameter("cccd", dlg.CCCD),
+                        OracleHelper.ParamNvarchar2("sn", (object?)dlg.SoNha ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("td", (object?)dlg.TenDuong ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("qh", (object?)dlg.QuanHuyen ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tp", (object?)dlg.TinhTP ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsb", (object?)dlg.TienSuBenh ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("tsbgd", (object?)dlg.TienSuBenhGD ?? DBNull.Value),
+                        OracleHelper.ParamNvarchar2("dut", (object?)dlg.DiUngThuoc ?? DBNull.Value));
+                UIHelper.ShowSuccess($"Đã thêm bệnh nhân mới ({mabn}).");
                 LoadBenhNhan();
             }
             catch (Exception ex)
@@ -755,7 +759,7 @@ namespace HospitalManagement.App.Forms
                     "INSERT INTO ADMIN.HSBA_DV (MA_HSBA, LOAI_DV, NGAY_DV, MA_KTV) " +
                     "VALUES (:mh, :ldv, :ngay, :mk)",
                     new OracleParameter("mh", txtNewDv_MaHsba.Text.Trim()),
-                    new OracleParameter("ldv", txtNewDv_LoaiDv.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("ldv", txtNewDv_LoaiDv.Text.Trim()),
                     new OracleParameter("ngay", dtpNewDv_Ngay.Value.Date),
                     new OracleParameter("mk", maKtv));
 
@@ -822,7 +826,7 @@ namespace HospitalManagement.App.Forms
                         "WHERE MA_HSBA = :mh AND LOAI_DV = :ldv AND NGAY_DV = :ngay",
                         new OracleParameter("mk", row["MA_KTV"] ?? DBNull.Value),
                         new OracleParameter("mh", row["MA_HSBA"]),
-                        new OracleParameter("ldv", row["LOAI_DV"]),
+                        OracleHelper.ParamNvarchar2("ldv", row["LOAI_DV"] ?? DBNull.Value),
                         new OracleParameter("ngay", row["NGAY_DV"]));
                     ok++;
                 }
@@ -923,7 +927,7 @@ namespace HospitalManagement.App.Forms
             {
                 OracleHelper.Instance.ExecuteNonQuery(
                     "UPDATE ADMIN.NHAN_VIEN SET QUE_QUAN = :qq, SDT = :sdt WHERE MA_NV = :mn",
-                    new OracleParameter("qq", txtQueQuan.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("qq", txtQueQuan.Text.Trim()),
                     new OracleParameter("sdt", txtSDT.Text.Trim()),
                     new OracleParameter("mn", OracleHelper.Instance.CurrentUser));
                 UIHelper.ShowSuccess("Đã cập nhật thông tin cá nhân.");

@@ -344,17 +344,18 @@ namespace HospitalManagement.App.Forms
                 {
                     foreach (DataRow row in changes.Rows)
                     {
-                        string maHsba = row["MA_HSBA"].ToString();
-                        string loaiDv = row["LOAI_DV"].ToString();
+                        string maHsba = row["MA_HSBA"].ToString()!;
+                        string loaiDv = row["LOAI_DV"].ToString()!;
                         DateTime ngayDv = Convert.ToDateTime(row["NGAY_DV"]);
-                        string ketQua = row["KET_QUA"].ToString();
+                        object ketQuaCell = row["KET_QUA"];
+                        object ketQua = ketQuaCell is DBNull or null ? DBNull.Value : ketQuaCell;
 
                         OracleHelper.Instance.ExecuteNonQuery(
                             "UPDATE ADMIN.V_HSBA_DV_KTV SET KET_QUA = :ketqua " +
                             "WHERE MA_HSBA = :mahsba AND LOAI_DV = :loaidv AND NGAY_DV = :ngaydv",
-                            new OracleParameter("ketqua", ketQua),
+                            OracleHelper.ParamNvarchar2("ketqua", ketQua),
                             new OracleParameter("mahsba", maHsba),
-                            new OracleParameter("loaidv", loaiDv),
+                            OracleHelper.ParamNvarchar2("loaidv", loaiDv),
                             new OracleParameter("ngaydv", ngayDv));
 
                         updatedCount++;
@@ -418,7 +419,7 @@ namespace HospitalManagement.App.Forms
 
                 int affected = OracleHelper.Instance.ExecuteNonQuery(
                     "UPDATE ADMIN.V_NHAN_VIEN_SELF SET QUE_QUAN = :quequan, SDT = :sdt",
-                    new OracleParameter("quequan", txtQueQuan.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("quequan", txtQueQuan.Text.Trim()),
                     new OracleParameter("sdt", txtSDT.Text.Trim()));
 
                 if (affected > 0)

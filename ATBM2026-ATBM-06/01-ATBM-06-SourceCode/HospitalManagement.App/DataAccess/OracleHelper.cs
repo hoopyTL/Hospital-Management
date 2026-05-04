@@ -78,7 +78,10 @@ namespace HospitalManagement.App.DataAccess
             var dt = new DataTable();
             using var conn = new OracleConnection(_connectionString);
             conn.Open();
-            using var cmd = new OracleCommand(sql, conn);
+            using var cmd = new OracleCommand(sql, conn)
+            {
+                BindByName = true,
+            };
             if (parameters != null)
             {
                 cmd.Parameters.AddRange(parameters);
@@ -95,7 +98,10 @@ namespace HospitalManagement.App.DataAccess
         {
             using var conn = new OracleConnection(_connectionString);
             conn.Open();
-            using var cmd = new OracleCommand(sql, conn);
+            using var cmd = new OracleCommand(sql, conn)
+            {
+                BindByName = true,
+            };
             if (parameters != null)
             {
                 cmd.Parameters.AddRange(parameters);
@@ -110,7 +116,10 @@ namespace HospitalManagement.App.DataAccess
         {
             using var conn = new OracleConnection(_connectionString);
             conn.Open();
-            using var cmd = new OracleCommand(sql, conn);
+            using var cmd = new OracleCommand(sql, conn)
+            {
+                BindByName = true,
+            };
             if (parameters != null)
             {
                 cmd.Parameters.AddRange(parameters);
@@ -142,6 +151,31 @@ namespace HospitalManagement.App.DataAccess
         public DataTable GetUserRoles()
         {
             return ExecuteQuery("SELECT GRANTED_ROLE FROM USER_ROLE_PRIVS");
+        }
+
+        /// <summary>
+        /// MA_BN kế tiếp theo quy ước seed: BN###### (6 chữ số).
+        /// </summary>
+        public string AllocNextMaBenhNhan()
+        {
+            const string sql = @"
+                SELECT 'BN' || LPAD(NVL(MAX(TO_NUMBER(SUBSTR(MA_BN, 3))), 0) + 1, 6, '0')
+                  FROM ADMIN.BENH_NHAN
+                 WHERE REGEXP_LIKE(MA_BN, '^BN[0-9]{6}$')";
+
+            var o = ExecuteScalar(sql);
+            var s = o?.ToString()?.Trim();
+            return string.IsNullOrEmpty(s) ? "BN000001" : s;
+        }
+
+        /// <summary>
+        /// Bind cột <c>NVARCHAR2</c>: nếu để mặc định, chuỗi Unicode có thể bị mất dấu và hiện '?'.
+        /// </summary>
+        public static OracleParameter ParamNvarchar2(string name, object value)
+        {
+            var p = new OracleParameter(name, OracleDbType.NVarchar2);
+            p.Value = value is null || ReferenceEquals(value, DBNull.Value) ? DBNull.Value : value;
+            return p;
         }
 
         public void Dispose()

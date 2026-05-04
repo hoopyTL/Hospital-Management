@@ -238,13 +238,13 @@ namespace HospitalManagement.App.Forms
                     "SO_NHA = :sonha, TEN_DUONG = :tenduong, QUAN_HUYEN = :quanhuyen, " +
                     "TINH_TP = :tinhtp, TIEN_SU_BENH = :tsb, TIEN_SU_BENH_GD = :tsbgd, " +
                     "DI_UNG_THUOC = :dut",
-                    new OracleParameter("sonha", txtSoNha.Text.Trim()),
-                    new OracleParameter("tenduong", txtTenDuong.Text.Trim()),
-                    new OracleParameter("quanhuyen", txtQuanHuyen.Text.Trim()),
-                    new OracleParameter("tinhtp", txtTinhTP.Text.Trim()),
-                    new OracleParameter("tsb", txtTienSuBenh.Text.Trim()),
-                    new OracleParameter("tsbgd", txtTienSuBenhGD.Text.Trim()),
-                    new OracleParameter("dut", txtDiUngThuoc.Text.Trim()));
+                    OracleHelper.ParamNvarchar2("sonha", txtSoNha.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("tenduong", txtTenDuong.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("quanhuyen", txtQuanHuyen.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("tinhtp", txtTinhTP.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("tsb", txtTienSuBenh.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("tsbgd", txtTienSuBenhGD.Text.Trim()),
+                    OracleHelper.ParamNvarchar2("dut", txtDiUngThuoc.Text.Trim()));
 
                 if (affected > 0)
                     UIHelper.ShowSuccess("Đã cập nhật thông tin cá nhân thành công!");

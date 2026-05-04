@@ -11,14 +11,13 @@ namespace HospitalManagement.App.Forms
     /// </summary>
     public class BenhNhanEditDialog : Form
     {
-        private TextBox txtMaBN, txtTenBN, txtCCCD;
+        private TextBox txtTenBN, txtCCCD;
         private ComboBox cboPhai;
         private DateTimePicker dtpNgaySinh;
         private TextBox txtSoNha, txtTenDuong, txtQuanHuyen, txtTinhTP;
         private TextBox txtTienSuBenh, txtTienSuBenhGD, txtDiUngThuoc;
         private Button btnOK, btnCancel;
 
-        public string MaBN => txtMaBN.Text.Trim();
         public string TenBN => txtTenBN.Text.Trim();
         public string Phai => cboPhai.SelectedItem?.ToString();
         public DateTime NgaySinh => dtpNgaySinh.Value.Date;
@@ -40,8 +39,9 @@ namespace HospitalManagement.App.Forms
 
         private void Init()
         {
-            UIHelper.StyleForm(this, "Thêm bệnh nhân mới", 560, 640);
+            UIHelper.StyleForm(this, "Thêm bệnh nhân mới", 580, 720);
             this.StartPosition = FormStartPosition.CenterParent;
+            AutoScroll = false;
 
             var lblTitle = new Label
             {
@@ -49,14 +49,12 @@ namespace HospitalManagement.App.Forms
                 Font = UIHelper.HeadingFont,
                 ForeColor = UIHelper.AccentGreen,
                 AutoSize = true,
-                Location = new Point(20, 15),
+                Location = new Point(20, 14),
                 BackColor = Color.Transparent,
             };
             this.Controls.Add(lblTitle);
 
-            int y = 60;
-            AddField("Mã BN (*):", out txtMaBN, ref y);
-            txtMaBN.CharacterCasing = CharacterCasing.Upper;
+            int y = 54;
             AddField("Họ tên (*):", out txtTenBN, ref y);
 
             // Phái combobox
@@ -101,24 +99,29 @@ namespace HospitalManagement.App.Forms
             AddField("TS bệnh GĐ:", out txtTienSuBenhGD, ref y);
             AddField("Dị ứng thuốc:", out txtDiUngThuoc, ref y);
 
-            btnOK = UIHelper.CreateButton("✅ Lưu", UIHelper.AccentGreen, 150, 40);
-            btnOK.Location = new Point(100, y + 20);
+            const int gapBeforeButtons = 18;
+            btnOK = UIHelper.CreateButton("✅ Lưu", UIHelper.AccentGreen, 160, 44);
+            btnOK.Location = new Point(118, y + gapBeforeButtons);
             btnOK.Click += (s, e) =>
             {
-                if (string.IsNullOrWhiteSpace(MaBN) || string.IsNullOrWhiteSpace(TenBN) || string.IsNullOrWhiteSpace(CCCD))
+                if (string.IsNullOrWhiteSpace(TenBN) || string.IsNullOrWhiteSpace(CCCD))
                 {
-                    UIHelper.ShowWarning("Mã BN, Họ tên, CCCD là bắt buộc.");
+                    UIHelper.ShowWarning("Họ tên và CCCD là bắt buộc.");
                     return;
                 }
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             };
 
-            btnCancel = UIHelper.CreateButton("✖ Hủy", UIHelper.AccentRed, 150, 40);
-            btnCancel.Location = new Point(270, y + 20);
+            btnCancel = UIHelper.CreateButton("✖ Hủy", UIHelper.AccentRed, 160, 44);
+            btnCancel.Location = new Point(283, y + gapBeforeButtons);
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
 
             this.Controls.AddRange(new Control[] { btnOK, btnCancel });
+
+            // Client area (không tính thanh tiêu đề): form Height=640 không đủ → hay bị cắt nút Lưu/Hủy
+            const int clientW = 560;
+            this.ClientSize = new Size(clientW, btnOK.Bottom + 28);
         }
 
         private void AddField(string label, out TextBox tb, ref int y)
