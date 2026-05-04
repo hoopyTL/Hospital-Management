@@ -28,7 +28,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     using (OracleCommand command = new OracleCommand("admin.sp_log_audit", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
@@ -73,7 +72,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = @"
                         SELECT audit_id, username, full_name, action_type, object_name, 
                                result, action_timestamp, notes
@@ -121,7 +119,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"
                         SELECT * FROM (
                             SELECT audit_id, username, full_name, action_type, object_name, record_id,
@@ -174,7 +171,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = @"
                         SELECT audit_id, username, full_name, action_type, object_name,
                                error_code, error_message, result, action_timestamp
@@ -222,7 +218,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"
                         SELECT * FROM (
                             SELECT audit_id, username, full_name, action_type, object_name, result, action_timestamp
@@ -274,7 +269,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"
                         SELECT * FROM (
                             SELECT audit_id, username, full_name, result, action_timestamp, ip_address
@@ -323,7 +317,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = @"
                         SELECT deployment_type, application_version, deployment_description,
                                COUNT(*) as so_thao_tac, MIN(action_timestamp) as thoi_gian_bat_dau,
@@ -358,7 +351,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = @"
                         SELECT * FROM admin.v_audit_log_summary";
 
@@ -475,7 +467,8 @@ namespace HospitalManagement.App.Services
         {
             try
             {
-                return System.Net.Dns.GetHostByName(System.Net.Dns.GetHostName()).AddressList[0].ToString();
+                var hostEntry = System.Net.Dns.GetHostEntry(System.Net.Dns.GetHostName());
+                return hostEntry.AddressList.Length > 0 ? hostEntry.AddressList[0].ToString() : "UNKNOWN";
             }
             catch
             {
@@ -507,7 +500,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     // Sử dụng anonymous PL/SQL block để thực thi NOAUDIT
                     string query = $@"DECLARE
                                         v_sql VARCHAR2(1000);
@@ -541,7 +533,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = @"DECLARE
                                       v_sql VARCHAR2(100);
                                     BEGIN
@@ -574,7 +565,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"BEGIN
                                         DBMS_FGA.DROP_POLICY(
                                           object_schema => 'admin',
@@ -611,8 +601,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
-
                     // Danh sách các FGA policies cần tắt
                     var policies = new[] {
                         new { policy = "FGA_AUDIT_UPDATE_DONTHUOC", table = "don_thuoc" },
@@ -668,7 +656,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"DECLARE
                                       v_sql VARCHAR2(500);
                                     BEGIN
@@ -704,7 +691,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = $@"DELETE FROM admin.AUDIT_LOG 
                                      WHERE action_timestamp < SYSDATE - {daysToKeep}";
 
@@ -738,7 +724,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = "DELETE FROM admin.AUDIT_LOG";
 
                     using (OracleCommand command = new OracleCommand(query, connection))
@@ -773,7 +758,6 @@ namespace HospitalManagement.App.Services
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    connection.Open();
                     string query = "SELECT name, value FROM v$parameter WHERE name = 'audit_trail'";
 
                     using (OracleDataAdapter adapter = new OracleDataAdapter(query, connection))

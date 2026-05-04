@@ -79,6 +79,13 @@ public class AdminMainForm : Form
         _lblConnection.Text = $"Đang kết nối: {_settings}";
         _lblSummary.Text = "Quản trị user/role, cấp quyền, thu hồi quyền và xem quyền trên Oracle.";
 
+        var btnAuditLog = UIHelper.CreateButton("📋 Xem Audit Log", UIHelper.PrimaryBlue, 150, 35);
+        btnAuditLog.Click += (s, e) =>
+        {
+            var auditForm = new AuditLogForm(_settings);
+            auditForm.ShowDialog();
+        };
+
         var header = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
@@ -89,6 +96,7 @@ public class AdminMainForm : Form
         };
         header.Controls.Add(_lblConnection);
         header.Controls.Add(_lblSummary);
+        header.Controls.Add(btnAuditLog);
 
         var tabs = new TabControl { Dock = DockStyle.Fill };
         tabs.TabPages.Add(BuildDashboardTab());
