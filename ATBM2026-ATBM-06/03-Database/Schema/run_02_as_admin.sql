@@ -29,47 +29,47 @@ PROMPT ==========================================
 PROMPT ==========================================
 PROMPT BƯỚC 3/11: RBAC - Create Roles
 PROMPT ==========================================
-@@RBAC/01_create_roles.sql
+@@../RBAC/01_create_roles.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 4/11: RBAC - Grant KTV + BN
 PROMPT ==========================================
-@@RBAC/02_grant_ktv_bn.sql
+@@../RBAC/02_grant_ktv_bn.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 5/11: RBAC - Grant DPV + BS (+ MV)
 PROMPT ==========================================
-@@RBAC/03_grant_dpv_bs.sql
+@@../RBAC/03_grant_dpv_bs.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 6/11: RBAC - Assign KTV + BN (LÂU)
 PROMPT ==========================================
-@@RBAC/04_assign_ktv_bn.sql
+@@../RBAC/04_assign_ktv_bn.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 7/11: RBAC - Assign DPV + BS
 PROMPT ==========================================
-@@RBAC/05_assign_dpv_bs.sql
+@@../RBAC/05_assign_dpv_bs.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 8/11: VPD - fn_get_role
 PROMPT ==========================================
-@@VPD/01_fn_get_role.sql
+@@../VPD/01_fn_get_role.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 9/11: VPD - Policies cơ bản
 PROMPT ==========================================
-@@VPD/02_vpd_basic.sql
+@@../VPD/02_vpd_basic.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 10/11: VPD - Policies mở rộng (DPV, BS)
 PROMPT ==========================================
-@@VPD/03_vpd_dpv_bs.sql
+@@../VPD/03_vpd_dpv_bs.sql
 
 PROMPT ==========================================
 PROMPT BƯỚC 11/11: Audit - Trigger KET_QUA
 PROMPT ==========================================
-@@Audit/01_audit_ketqua.sql
+@@../Audit/01_audit_ketqua.sql
 
 PROMPT ==========================================
 PROMPT ✅ HOÀN THÀNH TẤT CẢ!
