@@ -20,6 +20,9 @@ namespace HospitalManagement.App.Forms
         private DataGridView? _dgvErrors;
         private DataGridView? _dgvDeployment;
         private DataGridView? _dgvSummary;
+        private DataGridView? _dgvStandardAudit;
+        private DataGridView? _dgvFGAAudit;
+        private DataGridView? _dgvAuditStats;
 
         private TextBox? _txtSearchUser;
         private TextBox? _txtSearchAction;
@@ -116,6 +119,9 @@ namespace HospitalManagement.App.Forms
             _tabControl.TabPages.Add(BuildErrorsTab());
             _tabControl.TabPages.Add(BuildDeploymentTab());
             _tabControl.TabPages.Add(BuildSummaryTab());
+            _tabControl.TabPages.Add(BuildStandardAuditTab());
+            _tabControl.TabPages.Add(BuildFGAAuditTab());
+            _tabControl.TabPages.Add(BuildAuditStatsTab());
 
             // === Main Layout ===
             Controls.AddRange(new Control[] { _tabControl, toolbarPanel, headerPanel });
@@ -221,6 +227,60 @@ namespace HospitalManagement.App.Forms
             return tab;
         }
 
+        private TabPage BuildStandardAuditTab()
+        {
+            var tab = new TabPage("🔍 Standard Audit (DBA)");
+
+            _dgvStandardAudit = CreateDataGrid();
+            _dgvStandardAudit.Columns.Add("audit_id", "ID");
+            _dgvStandardAudit.Columns.Add("username", "User");
+            _dgvStandardAudit.Columns.Add("action_name", "Hành Động");
+            _dgvStandardAudit.Columns.Add("obj_name", "Đối Tượng");
+            _dgvStandardAudit.Columns.Add("returncode", "Mã Lỗi");
+            _dgvStandardAudit.Columns.Add("result_status", "Kết Quả");
+            _dgvStandardAudit.Columns.Add("action_timestamp", "Thời Gian");
+
+            SetColumnWidths(_dgvStandardAudit, new[] { 60, 80, 100, 120, 70, 90, 150 });
+
+            tab.Controls.Add(_dgvStandardAudit);
+            return tab;
+        }
+
+        private TabPage BuildFGAAuditTab()
+        {
+            var tab = new TabPage("🛡️ Fine-Grained Audit (FGA)");
+
+            _dgvFGAAudit = CreateDataGrid();
+            _dgvFGAAudit.Columns.Add("audit_id", "ID");
+            _dgvFGAAudit.Columns.Add("db_user", "DB User");
+            _dgvFGAAudit.Columns.Add("policy_name", "Policy");
+            _dgvFGAAudit.Columns.Add("object_name", "Bảng");
+            _dgvFGAAudit.Columns.Add("statement_type", "Loại Lệnh");
+            _dgvFGAAudit.Columns.Add("action_timestamp", "Thời Gian");
+            _dgvFGAAudit.Columns.Add("sql_preview", "SQL Preview");
+
+            SetColumnWidths(_dgvFGAAudit, new[] { 60, 100, 180, 120, 100, 150, 300 });
+
+            tab.Controls.Add(_dgvFGAAudit);
+            return tab;
+        }
+
+        private TabPage BuildAuditStatsTab()
+        {
+            var tab = new TabPage("📈 Audit Statistics");
+
+            _dgvAuditStats = CreateDataGrid();
+            _dgvAuditStats.Columns.Add("stat_type", "Loại Thống Kê");
+            _dgvAuditStats.Columns.Add("metric_name", "Chỉ Số");
+            _dgvAuditStats.Columns.Add("metric_value", "Giá Trị");
+            _dgvAuditStats.Columns.Add("updated_time", "Cập Nhật");
+
+            SetColumnWidths(_dgvAuditStats, new[] { 150, 200, 150, 150 });
+
+            tab.Controls.Add(_dgvAuditStats);
+            return tab;
+        }
+
         private DataGridView CreateDataGrid()
         {
             return new DataGridView
@@ -317,7 +377,48 @@ namespace HospitalManagement.App.Forms
                     );
                 }
 
-                _lblStatus.Text = $"✅ Tải thành công | Hôm nay: {_dgvTodayLogs!.Rows.Count} bản ghi";
+                // Load Standard Audit Logs (từ DBA_AUDIT_TRAIL)
+                var standardAudits = _auditService.GetStandardAuditLogs("", "", 50);
+                foreach (var audit in standardAudits)
+                {
+                    _dgvStandardAudit!.Rows.Add(
+                        audit.AuditId, audit.Username, audit.ActionType,
+                        audit.ObjectName, audit.ErrorCode, audit.Result,
+                        audit.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
+                    );
+                }
+
+                // Load FGA Audit Logs (từ DBA_FGA_AUDIT_TRAIL)
+                var fgaAudits = _auditService.GetFGAAuditLogs("", "", 50);
+                foreach (var audit in fgaAudits)
+                {
+                    var noteParts = audit.Notes?.Split('|') ?? new[] { "", "" };
+                    _dgvFGAAudit!.Rows.Add(
+                        audit.AuditId, audit.Username, noteParts[0].Trim(),
+                        audit.ObjectName, audit.ActionType,
+                        audit.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss"),
+                        noteParts.Length > 1 ? noteParts[1].Trim() : ""
+                    );
+                }
+
+                // Load Audit Statistics
+                var auditStatsDt = _auditService.GetAuditStatisticsFromDBA();
+                foreach (DataRow row in auditStatsDt.Rows)
+                {
+                    _dgvAuditStats!.Rows.Add(
+                        "Standard Audit", row["action_name"], row["so_lan_thuc_hien"], DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    );
+                }
+
+                var fgaStatsDt = _auditService.GetFGAStatistics();
+                foreach (DataRow row in fgaStatsDt.Rows)
+                {
+                    _dgvAuditStats!.Rows.Add(
+                        "FGA Policy", $"{row["policy_name"]} ({row["object_name"]})", row["so_lan_ghi_vay"], DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                    );
+                }
+
+                _lblStatus.Text = $"✅ Tải thành công | Hôm nay: {_dgvTodayLogs!.Rows.Count} bản ghi | Standard Audit: {_dgvStandardAudit!.Rows.Count} | FGA: {_dgvFGAAudit!.Rows.Count}";
             }
             catch (Exception ex)
             {
@@ -333,6 +434,9 @@ namespace HospitalManagement.App.Forms
             _dgvErrors?.Rows.Clear();
             _dgvDeployment?.Rows.Clear();
             _dgvSummary?.Rows.Clear();
+            _dgvStandardAudit?.Rows.Clear();
+            _dgvFGAAudit?.Rows.Clear();
+            _dgvAuditStats?.Rows.Clear();
 
             LoadAllData();
         }

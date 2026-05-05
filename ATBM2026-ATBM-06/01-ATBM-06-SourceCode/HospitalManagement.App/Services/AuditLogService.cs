@@ -748,6 +748,203 @@ namespace HospitalManagement.App.Services
         }
 
         /// <summary>
+        /// Lấy Standard Audit Logs từ DBA_AUDIT_TRAIL
+        /// </summary>
+        public List<AuditLog> GetStandardAuditLogs(string tableName = "", string actionType = "", int limit = 100)
+        {
+            List<AuditLog> logs = new List<AuditLog>();
+
+            try
+            {
+                using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
+                {
+                    string whereClause = "WHERE 1=1";
+                    if (!string.IsNullOrEmpty(tableName))
+                        whereClause += $" AND UPPER(obj_name) LIKE '%{tableName.ToUpper()}%'";
+                    if (!string.IsNullOrEmpty(actionType))
+                        whereClause += $" AND UPPER(action_name) = '{actionType.ToUpper()}'";
+
+                    string query = $@"
+                        SELECT * FROM (
+                            SELECT 
+                                ROWNUM as audit_id,
+                                username,
+                                '' as full_name,
+                                action_name,
+                                obj_name,
+                                returncode,
+                                TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') as action_timestamp,
+                                CASE WHEN returncode = 0 THEN 'SUCCESS' ELSE 'FAILED' END as result_status
+                            FROM dba_audit_trail
+                            {whereClause}
+                            ORDER BY timestamp DESC
+                        )
+                        WHERE ROWNUM <= {limit}";
+
+                    using (OracleCommand command = new OracleCommand(query, connection))
+                    {
+                        using (OracleDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                logs.Add(new AuditLog
+                                {
+                                    AuditId = reader["audit_id"].ToString(),
+                                    Username = reader["username"].ToString(),
+                                    ActionType = reader["action_name"].ToString(),
+                                    ObjectName = reader["obj_name"].ToString(),
+                                    ErrorCode = reader["returncode"].ToString(),
+                                    Result = reader["result_status"].ToString(),
+                                    ActionTimestamp = DateTime.Parse(reader["action_timestamp"].ToString())
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy Standard Audit Logs: {ex.Message}");
+            }
+
+            return logs;
+        }
+
+        /// <summary>
+        /// Lấy Fine-Grained Audit (FGA) Logs từ DBA_FGA_AUDIT_TRAIL
+        /// </summary>
+        public List<AuditLog> GetFGAAuditLogs(string policyName = "", string tableName = "", int limit = 100)
+        {
+            List<AuditLog> logs = new List<AuditLog>();
+
+            try
+            {
+                using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
+                {
+                    string whereClause = "WHERE 1=1";
+                    if (!string.IsNullOrEmpty(policyName))
+                        whereClause += $" AND UPPER(policy_name) LIKE '%{policyName.ToUpper()}%'";
+                    if (!string.IsNullOrEmpty(tableName))
+                        whereClause += $" AND UPPER(object_name) LIKE '%{tableName.ToUpper()}%'";
+
+                    string query = $@"
+                        SELECT * FROM (
+                            SELECT 
+                                ROWNUM as audit_id,
+                                db_user,
+                                object_name,
+                                policy_name,
+                                statement_type,
+                                TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') as action_timestamp,
+                                SUBSTR(sql_text, 1, 200) as sql_preview
+                            FROM dba_fga_audit_trail
+                            {whereClause}
+                            ORDER BY timestamp DESC
+                        )
+                        WHERE ROWNUM <= {limit}";
+
+                    using (OracleCommand command = new OracleCommand(query, connection))
+                    {
+                        using (OracleDataReader reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                logs.Add(new AuditLog
+                                {
+                                    AuditId = reader["audit_id"].ToString(),
+                                    Username = reader["db_user"].ToString(),
+                                    ObjectName = reader["object_name"].ToString(),
+                                    ActionType = reader["statement_type"].ToString(),
+                                    Notes = reader["policy_name"].ToString() + " | " + reader["sql_preview"].ToString(),
+                                    Result = "SUCCESS",
+                                    ActionTimestamp = DateTime.Parse(reader["action_timestamp"].ToString())
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy FGA Audit Logs: {ex.Message}");
+            }
+
+            return logs;
+        }
+
+        /// <summary>
+        /// Lấy Audit Statistics từ DBA_AUDIT_TRAIL
+        /// </summary>
+        public DataTable GetAuditStatisticsFromDBA()
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
+                {
+                    string query = @"
+                        SELECT 
+                            action_name,
+                            COUNT(*) as so_lan_thuc_hien,
+                            SUM(CASE WHEN returncode = 0 THEN 1 ELSE 0 END) as thanh_cong,
+                            SUM(CASE WHEN returncode != 0 THEN 1 ELSE 0 END) as that_bai
+                        FROM dba_audit_trail
+                        WHERE obj_name IN ('HSBA', 'DON_THUOC', 'HSBA_DV', 'BENH_NHAN')
+                        GROUP BY action_name
+                        ORDER BY so_lan_thuc_hien DESC";
+
+                    using (OracleDataAdapter adapter = new OracleDataAdapter(query, connection))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy Audit Statistics: {ex.Message}");
+            }
+
+            return dt;
+        }
+
+        /// <summary>
+        /// Lấy FGA Statistics từ DBA_FGA_AUDIT_TRAIL
+        /// </summary>
+        public DataTable GetFGAStatistics()
+        {
+            DataTable dt = new DataTable();
+
+            try
+            {
+                using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
+                {
+                    string query = @"
+                        SELECT 
+                            policy_name,
+                            object_name,
+                            COUNT(*) as so_lan_ghi_vay,
+                            MIN(timestamp) as lan_dau_tien,
+                            MAX(timestamp) as lan_cuoi_cung
+                        FROM dba_fga_audit_trail
+                        GROUP BY policy_name, object_name
+                        ORDER BY so_lan_ghi_vay DESC";
+
+                    using (OracleDataAdapter adapter = new OracleDataAdapter(query, connection))
+                    {
+                        adapter.Fill(dt);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi lấy FGA Statistics: {ex.Message}");
+            }
+
+            return dt;
+        }
+
+        /// <summary>
         /// Lấy trạng thái Audit System
         /// </summary>
         public DataTable GetAuditStatus()
