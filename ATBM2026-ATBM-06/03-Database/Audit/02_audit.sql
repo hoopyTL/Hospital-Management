@@ -1,5 +1,12 @@
 SET SERVEROUTPUT ON;
 
+
+-- ==========================================
+-- 1. Kích hoạt kiểm toán (Chạy bằng sysdba trên root container nếu hệ thống chưa bật)
+-- ALTER SYSTEM SET audit_trail=db,extended SCOPE=SPFILE;
+-- SHUTDOWN IMMEDIATE;
+-- STARTUP;
+
 -- ==========================================
 -- 2. THỰC HIỆN KIỂM TOÁN DÙNG STANDARD AUDIT
 -- ==========================================
