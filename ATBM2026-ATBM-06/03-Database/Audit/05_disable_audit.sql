@@ -20,47 +20,14 @@ NOAUDIT ALL;
 COMMIT;
 
 -- =====================================================================
--- 2. TAT FINE-GRAINED AUDIT (FGA) POLICIES
+-- 2. TAT UNIFIED AUDIT
+-- Tắt Unified Audit Policy
 -- =====================================================================
+NOAUDIT POLICY UNIFIED_AUDIT_UPDATE_DONTHUOC;
+NOAUDIT POLICY UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA;
+NOAUDIT POLICY UNIFIED_AUDIT_ILLEGAL_DML_HSBA_DV;
 
--- Tắt FGA Policy trên don_thuoc
-BEGIN
-  DBMS_FGA.DROP_POLICY(
-    object_schema      => 'admin',
-    object_name        => 'don_thuoc',
-    policy_name        => 'FGA_AUDIT_UPDATE_DONTHUOC'
-  );
-  DBMS_OUTPUT.PUT_LINE('Tắt FGA Policy FGA_AUDIT_UPDATE_DONTHUOC thành công');
-EXCEPTION
-  WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('Policy FGA_AUDIT_UPDATE_DONTHUOC không tồn tại hoặc đã xóa');
-END;
-/
-
--- Tắt FGA Policy trên hsba
-BEGIN
-  DBMS_FGA.DROP_POLICY(
-    object_schema      => 'admin',
-    object_name        => 'hsba',
-    policy_name        => 'FGA_AUDIT_ILLEGAL_UPDATE_HSBA'
-  );
-  DBMS_OUTPUT.PUT_LINE('Tắt FGA Policy FGA_AUDIT_ILLEGAL_UPDATE_HSBA thành công');
-EXCEPTION
-  WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('Policy FGA_AUDIT_ILLEGAL_UPDATE_HSBA không tồn tại hoặc đã xóa');
-END;
-/
-
--- Tắt FGA Policy trên hsba_dv
-BEGIN
-  DBMS_FGA.DROP_POLICY(
-    object_schema      => 'admin',
-    object_name        => 'hsba_dv',
-    policy_name        => 'FGA_AUDIT_ILLEGAL_DML_HSBA_DV'
-  );
-  DBMS_OUTPUT.PUT_LINE('Tắt FGA Policy FGA_AUDIT_ILLEGAL_DML_HSBA_DV thành công');
-EXCEPTION
-  WHEN OTHERS THEN
-    DBMS_OUTPUT.PUT_LINE('Policy FGA_AUDIT_ILLEGAL_DML_HSBA_DV không tồn tại hoặc đã xóa');
-END;
-/
+DROP AUDIT POLICY UNIFIED_AUDIT_UPDATE_DONTHUOC;
+DROP AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA;
+DROP AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_DML_HSBA_DV;
+COMMIT;

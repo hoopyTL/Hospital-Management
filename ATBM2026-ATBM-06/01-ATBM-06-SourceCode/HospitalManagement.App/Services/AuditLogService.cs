@@ -73,7 +73,7 @@ namespace HospitalManagement.App.Services
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
                     string query = @"
-                        SELECT audit_id, username, full_name, action_type, object_name, 
+                        SELECT audit_id, username, full_name, action_type, 
                                result, action_timestamp, notes
                         FROM admin.v_audit_log_today
                         ORDER BY action_timestamp DESC";
@@ -90,7 +90,6 @@ namespace HospitalManagement.App.Services
                                     Username = reader["username"].ToString(),
                                     FullName = reader["full_name"].ToString(),
                                     ActionType = reader["action_type"].ToString(),
-                                    ObjectName = reader["object_name"].ToString(),
                                     Result = reader["result"].ToString(),
                                     ActionTimestamp = Convert.ToDateTime(reader["action_timestamp"]),
                                     Notes = reader["notes"].ToString()
@@ -121,7 +120,7 @@ namespace HospitalManagement.App.Services
                 {
                     string query = $@"
                         SELECT * FROM (
-                            SELECT audit_id, username, full_name, action_type, object_name, record_id,
+                            SELECT audit_id, username, full_name, action_type, record_id,
                                    old_value, new_value, result, action_timestamp
                             FROM admin.v_audit_log_data_changes
                             ORDER BY action_timestamp DESC
@@ -140,7 +139,6 @@ namespace HospitalManagement.App.Services
                                     Username = reader["username"].ToString(),
                                     FullName = reader["full_name"].ToString(),
                                     ActionType = reader["action_type"].ToString(),
-                                    ObjectName = reader["object_name"].ToString(),
                                     RecordId = reader["record_id"].ToString(),
                                     OldValue = reader["old_value"].ToString(),
                                     NewValue = reader["new_value"].ToString(),
@@ -172,7 +170,7 @@ namespace HospitalManagement.App.Services
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
                     string query = @"
-                        SELECT audit_id, username, full_name, action_type, object_name,
+                        SELECT audit_id, username, full_name, action_type,
                                error_code, error_message, result, action_timestamp
                         FROM admin.v_audit_log_errors";
 
@@ -188,7 +186,6 @@ namespace HospitalManagement.App.Services
                                     Username = reader["username"].ToString(),
                                     FullName = reader["full_name"].ToString(),
                                     ActionType = reader["action_type"].ToString(),
-                                    ObjectName = reader["object_name"].ToString(),
                                     ErrorCode = reader["error_code"].ToString(),
                                     ErrorMessage = reader["error_message"].ToString(),
                                     Result = reader["result"].ToString(),
@@ -220,7 +217,7 @@ namespace HospitalManagement.App.Services
                 {
                     string query = $@"
                         SELECT * FROM (
-                            SELECT audit_id, username, full_name, action_type, object_name, result, action_timestamp
+                            SELECT audit_id, username, full_name, action_type, result, action_timestamp
                             FROM admin.AUDIT_LOG
                             WHERE UPPER(username) = UPPER(:username)
                             ORDER BY action_timestamp DESC
@@ -241,7 +238,6 @@ namespace HospitalManagement.App.Services
                                     Username = reader["username"].ToString(),
                                     FullName = reader["full_name"].ToString(),
                                     ActionType = reader["action_type"].ToString(),
-                                    ObjectName = reader["object_name"].ToString(),
                                     Result = reader["result"].ToString(),
                                     ActionTimestamp = Convert.ToDateTime(reader["action_timestamp"])
                                 });
@@ -378,7 +374,6 @@ namespace HospitalManagement.App.Services
                 Username = username,
                 FullName = fullName,
                 ActionType = "LOGIN",
-                ObjectName = "APPLICATION",
                 ObjectSchema = "SYSTEM",
                 Result = success ? "SUCCESS" : "FAILED",
                 IpAddress = ipAddress,
@@ -389,14 +384,13 @@ namespace HospitalManagement.App.Services
         /// <summary>
         /// Ghi audit log cho hành động INSERT
         /// </summary>
-        public void LogInsert(string username, string fullName, string objectName, string recordId, string newValue)
+        public void LogInsert(string username, string fullName, string recordId, string newValue)
         {
             LogAudit(new AuditLog
             {
                 Username = username,
                 FullName = fullName,
                 ActionType = "INSERT",
-                ObjectName = objectName,
                 ObjectSchema = "ADMIN",
                 NewValue = newValue,
                 RecordId = recordId,
@@ -407,14 +401,13 @@ namespace HospitalManagement.App.Services
         /// <summary>
         /// Ghi audit log cho hành động UPDATE
         /// </summary>
-        public void LogUpdate(string username, string fullName, string objectName, string recordId, string oldValue, string newValue)
+        public void LogUpdate(string username, string fullName, string recordId, string oldValue, string newValue)
         {
             LogAudit(new AuditLog
             {
                 Username = username,
                 FullName = fullName,
                 ActionType = "UPDATE",
-                ObjectName = objectName,
                 ObjectSchema = "ADMIN",
                 OldValue = oldValue,
                 NewValue = newValue,
@@ -426,14 +419,13 @@ namespace HospitalManagement.App.Services
         /// <summary>
         /// Ghi audit log cho hành động DELETE
         /// </summary>
-        public void LogDelete(string username, string fullName, string objectName, string recordId, string oldValue)
+        public void LogDelete(string username, string fullName, string recordId, string oldValue)
         {
             LogAudit(new AuditLog
             {
                 Username = username,
                 FullName = fullName,
                 ActionType = "DELETE",
-                ObjectName = objectName,
                 ObjectSchema = "ADMIN",
                 OldValue = oldValue,
                 RecordId = recordId,
@@ -451,7 +443,6 @@ namespace HospitalManagement.App.Services
                 Username = username,
                 FullName = fullName,
                 ActionType = "DEPLOYMENT",
-                ObjectName = "APPLICATION",
                 ObjectSchema = "SYSTEM",
                 DeploymentType = deploymentType,
                 ApplicationVersion = applicationVersion,
@@ -557,69 +548,32 @@ namespace HospitalManagement.App.Services
         }
 
         /// <summary>
-        /// Tắt FGA Policy
+        /// Tắt tất cả Unified Audit Policies
         /// </summary>
-        public bool DisableFGAPolicy(string policyName, string objectName = "don_thuoc")
+        public bool DisableAllUnifiedAuditPolicies()
         {
             try
             {
                 using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
                 {
-                    string query = $@"BEGIN
-                                        DBMS_FGA.DROP_POLICY(
-                                          object_schema => 'admin',
-                                          object_name   => '{objectName}',
-                                          policy_name   => '{policyName}'
-                                        );
-                                        DBMS_OUTPUT.PUT_LINE('Tắt FGA Policy {policyName} thành công');
-                                      EXCEPTION
-                                        WHEN OTHERS THEN
-                                          DBMS_OUTPUT.PUT_LINE('FGA Policy {policyName} không tồn tại: ' || SQLERRM);
-                                      END;";
-
-                    using (OracleCommand command = new OracleCommand(query, connection))
-                    {
-                        command.ExecuteNonQuery();
-                        Console.WriteLine($"Tắt FGA Policy '{policyName}' thành công");
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Lỗi tắt FGA policy: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Tắt tất cả FGA Policies
-        /// </summary>
-        public bool DisableAllFGAPolicies()
-        {
-            try
-            {
-                using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
-                {
-                    // Danh sách các FGA policies cần tắt
+                    // Danh sách các Unified Audit policies cần tắt
                     var policies = new[] {
-                        new { policy = "FGA_AUDIT_UPDATE_DONTHUOC", table = "don_thuoc" },
-                        new { policy = "FGA_AUDIT_ILLEGAL_UPDATE_HSBA", table = "hsba" },
-                        new { policy = "FGA_AUDIT_ILLEGAL_DML_HSBA_DV", table = "hsba_dv" }
+                        "UNIFIED_AUDIT_UPDATE_DONTHUOC",
+                        "UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA",
+                        "UNIFIED_AUDIT_ILLEGAL_DML_HSBA_DV"
                     };
 
-                    foreach (var item in policies)
+                    foreach (var policyName in policies)
                     {
-                        string query = $@"BEGIN
-                                          DBMS_FGA.DROP_POLICY(
-                                            object_schema => 'admin',
-                                            object_name   => '{item.table}',
-                                            policy_name   => '{item.policy}'
-                                          );
-                                          DBMS_OUTPUT.PUT_LINE('Tắt FGA Policy {item.policy} thành công');
+                        string query = $@"DECLARE
+                                          v_sql VARCHAR2(500);
+                                        BEGIN
+                                          v_sql := 'NOAUDIT POLICY {policyName}';
+                                          EXECUTE IMMEDIATE v_sql;
+                                          DBMS_OUTPUT.PUT_LINE('Tắt Unified Audit Policy {policyName} thành công');
                                         EXCEPTION
                                           WHEN OTHERS THEN
-                                            DBMS_OUTPUT.PUT_LINE('FGA Policy {item.policy} không tồn tại hoặc đã xóa');
+                                            DBMS_OUTPUT.PUT_LINE('Policy {policyName} không tồn tại hoặc đã xóa');
                                         END;";
 
                         try
@@ -627,12 +581,12 @@ namespace HospitalManagement.App.Services
                             using (OracleCommand command = new OracleCommand(query, connection))
                             {
                                 command.ExecuteNonQuery();
-                                Console.WriteLine($"Tắt FGA Policy '{item.policy}' thành công");
+                                Console.WriteLine($"Tắt Unified Audit Policy '{policyName}' thành công");
                             }
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Cảnh báo khi tắt {item.policy}: {ex.Message}");
+                            Console.WriteLine($"Cảnh báo khi tắt {policyName}: {ex.Message}");
                             // Tiếp tục với policy tiếp theo nếu có lỗi
                         }
                     }
@@ -642,7 +596,7 @@ namespace HospitalManagement.App.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi tắt tất cả FGA policies: {ex.Message}");
+                Console.WriteLine($"Lỗi tắt tất cả Unified Audit policies: {ex.Message}");
                 return false;
             }
         }
@@ -811,9 +765,9 @@ namespace HospitalManagement.App.Services
         }
 
         /// <summary>
-        /// Lấy Fine-Grained Audit (FGA) Logs từ DBA_FGA_AUDIT_TRAIL
+        /// Lấy Unified Audit Logs từ UNIFIED_AUDIT_TRAIL
         /// </summary>
-        public List<AuditLog> GetFGAAuditLogs(string policyName = "", string tableName = "", int limit = 100)
+        public List<AuditLog> GetUnifiedAuditLogs(string policyName = "", string tableName = "", int limit = 100)
         {
             List<AuditLog> logs = new List<AuditLog>();
 
@@ -823,7 +777,7 @@ namespace HospitalManagement.App.Services
                 {
                     string whereClause = "WHERE 1=1";
                     if (!string.IsNullOrEmpty(policyName))
-                        whereClause += $" AND UPPER(policy_name) LIKE '%{policyName.ToUpper()}%'";
+                        whereClause += $" AND UPPER(audit_option) LIKE '%{policyName.ToUpper()}%'";
                     if (!string.IsNullOrEmpty(tableName))
                         whereClause += $" AND UPPER(object_name) LIKE '%{tableName.ToUpper()}%'";
 
@@ -831,15 +785,15 @@ namespace HospitalManagement.App.Services
                         SELECT * FROM (
                             SELECT 
                                 ROWNUM as audit_id,
-                                db_user,
+                                database_user,
                                 object_name,
-                                policy_name,
-                                statement_type,
-                                TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') as action_timestamp,
+                                audit_option,
+                                action_name,
+                                TO_CHAR(event_timestamp, 'YYYY-MM-DD HH24:MI:SS') as action_timestamp,
                                 SUBSTR(sql_text, 1, 200) as sql_preview
-                            FROM dba_fga_audit_trail
+                            FROM unified_audit_trail
                             {whereClause}
-                            ORDER BY timestamp DESC
+                            ORDER BY event_timestamp DESC
                         )
                         WHERE ROWNUM <= {limit}";
 
@@ -852,10 +806,10 @@ namespace HospitalManagement.App.Services
                                 logs.Add(new AuditLog
                                 {
                                     AuditId = reader["audit_id"].ToString(),
-                                    Username = reader["db_user"].ToString(),
+                                    Username = reader["database_user"].ToString(),
                                     ObjectName = reader["object_name"].ToString(),
-                                    ActionType = reader["statement_type"].ToString(),
-                                    Notes = reader["policy_name"].ToString() + " | " + reader["sql_preview"].ToString(),
+                                    ActionType = reader["action_name"].ToString(),
+                                    Notes = reader["audit_option"].ToString() + " | " + reader["sql_preview"].ToString(),
                                     Result = "SUCCESS",
                                     ActionTimestamp = DateTime.Parse(reader["action_timestamp"].ToString())
                                 });
@@ -866,7 +820,7 @@ namespace HospitalManagement.App.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi lấy FGA Audit Logs: {ex.Message}");
+                Console.WriteLine($"Lỗi lấy Unified Audit Logs: {ex.Message}");
             }
 
             return logs;
@@ -909,9 +863,9 @@ namespace HospitalManagement.App.Services
         }
 
         /// <summary>
-        /// Lấy FGA Statistics từ DBA_FGA_AUDIT_TRAIL
+        /// Lấy Unified Audit Statistics
         /// </summary>
-        public DataTable GetFGAStatistics()
+        public DataTable GetUnifiedAuditStatistics()
         {
             DataTable dt = new DataTable();
 
@@ -921,13 +875,13 @@ namespace HospitalManagement.App.Services
                 {
                     string query = @"
                         SELECT 
-                            policy_name,
-                            object_name,
+                            action_name,
                             COUNT(*) as so_lan_ghi_vay,
-                            MIN(timestamp) as lan_dau_tien,
-                            MAX(timestamp) as lan_cuoi_cung
-                        FROM dba_fga_audit_trail
-                        GROUP BY policy_name, object_name
+                            MIN(event_timestamp) as lan_dau_tien,
+                            MAX(event_timestamp) as lan_cuoi_cung
+                        FROM unified_audit_trail
+                        WHERE object_name IN ('HSBA', 'DON_THUOC', 'HSBA_DV', 'BENH_NHAN')
+                        GROUP BY action_name
                         ORDER BY so_lan_ghi_vay DESC";
 
                     using (OracleDataAdapter adapter = new OracleDataAdapter(query, connection))
@@ -938,7 +892,7 @@ namespace HospitalManagement.App.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi lấy FGA Statistics: {ex.Message}");
+                Console.WriteLine($"Lỗi lấy Unified Audit Statistics: {ex.Message}");
             }
 
             return dt;

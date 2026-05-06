@@ -21,7 +21,7 @@ namespace HospitalManagement.App.Forms
         private DataGridView? _dgvDeployment;
         private DataGridView? _dgvSummary;
         private DataGridView? _dgvStandardAudit;
-        private DataGridView? _dgvFGAAudit;
+        private DataGridView? _dgvUnifiedAudit;
         private DataGridView? _dgvAuditStats;
 
         private TextBox? _txtSearchUser;
@@ -120,7 +120,7 @@ namespace HospitalManagement.App.Forms
             _tabControl.TabPages.Add(BuildDeploymentTab());
             _tabControl.TabPages.Add(BuildSummaryTab());
             _tabControl.TabPages.Add(BuildStandardAuditTab());
-            _tabControl.TabPages.Add(BuildFGAAuditTab());
+            _tabControl.TabPages.Add(BuildUnifiedAuditTab());
             _tabControl.TabPages.Add(BuildAuditStatsTab());
 
             // === Main Layout ===
@@ -138,12 +138,11 @@ namespace HospitalManagement.App.Forms
             _dgvTodayLogs.Columns.Add("username", "Người Dùng");
             _dgvTodayLogs.Columns.Add("full_name", "Tên Đầy Đủ");
             _dgvTodayLogs.Columns.Add("action_type", "Hành Động");
-            _dgvTodayLogs.Columns.Add("object_name", "Đối Tượng");
             _dgvTodayLogs.Columns.Add("result", "Kết Quả");
             _dgvTodayLogs.Columns.Add("action_timestamp", "Thời Gian");
             _dgvTodayLogs.Columns.Add("notes", "Ghi Chú");
 
-            SetColumnWidths(_dgvTodayLogs, new[] { 100, 100, 150, 100, 150, 80, 150, 200 });
+            SetColumnWidths(_dgvTodayLogs, new[] { 100, 100, 150, 100, 80, 150, 200 });
 
             tab.Controls.Add(_dgvTodayLogs);
             return tab;
@@ -158,14 +157,13 @@ namespace HospitalManagement.App.Forms
             _dgvDataChanges.Columns.Add("username", "Người Dùng");
             _dgvDataChanges.Columns.Add("full_name", "Tên");
             _dgvDataChanges.Columns.Add("action_type", "Loại");
-            _dgvDataChanges.Columns.Add("object_name", "Bảng");
             _dgvDataChanges.Columns.Add("record_id", "Record ID");
             _dgvDataChanges.Columns.Add("old_value", "Giá Trị Cũ");
             _dgvDataChanges.Columns.Add("new_value", "Giá Trị Mới");
             _dgvDataChanges.Columns.Add("result", "Kết Quả");
             _dgvDataChanges.Columns.Add("action_timestamp", "Thời Gian");
 
-            SetColumnWidths(_dgvDataChanges, new[] { 80, 80, 100, 70, 100, 80, 150, 150, 70, 150 });
+            SetColumnWidths(_dgvDataChanges, new[] { 80, 80, 100, 70, 80, 150, 150, 70, 150 });
 
             tab.Controls.Add(_dgvDataChanges);
             return tab;
@@ -180,13 +178,12 @@ namespace HospitalManagement.App.Forms
             _dgvErrors.Columns.Add("username", "Người Dùng");
             _dgvErrors.Columns.Add("full_name", "Tên");
             _dgvErrors.Columns.Add("action_type", "Hành Động");
-            _dgvErrors.Columns.Add("object_name", "Đối Tượng");
             _dgvErrors.Columns.Add("error_code", "Mã Lỗi");
             _dgvErrors.Columns.Add("error_message", "Thông Báo Lỗi");
             _dgvErrors.Columns.Add("result", "Kết Quả");
             _dgvErrors.Columns.Add("action_timestamp", "Thời Gian");
 
-            SetColumnWidths(_dgvErrors, new[] { 80, 80, 100, 100, 100, 80, 250, 80, 150 });
+            SetColumnWidths(_dgvErrors, new[] { 80, 80, 100, 100, 80, 250, 80, 150 });
 
             tab.Controls.Add(_dgvErrors);
             return tab;
@@ -235,33 +232,32 @@ namespace HospitalManagement.App.Forms
             _dgvStandardAudit.Columns.Add("audit_id", "ID");
             _dgvStandardAudit.Columns.Add("username", "User");
             _dgvStandardAudit.Columns.Add("action_name", "Hành Động");
-            _dgvStandardAudit.Columns.Add("obj_name", "Đối Tượng");
             _dgvStandardAudit.Columns.Add("returncode", "Mã Lỗi");
             _dgvStandardAudit.Columns.Add("result_status", "Kết Quả");
             _dgvStandardAudit.Columns.Add("action_timestamp", "Thời Gian");
 
-            SetColumnWidths(_dgvStandardAudit, new[] { 60, 80, 100, 120, 70, 90, 150 });
+            SetColumnWidths(_dgvStandardAudit, new[] { 60, 80, 100, 70, 90, 150 });
 
             tab.Controls.Add(_dgvStandardAudit);
             return tab;
         }
 
-        private TabPage BuildFGAAuditTab()
+        private TabPage BuildUnifiedAuditTab()
         {
-            var tab = new TabPage("🛡️ Fine-Grained Audit (FGA)");
+            var tab = new TabPage("🛡️ Unified Audit");
 
-            _dgvFGAAudit = CreateDataGrid();
-            _dgvFGAAudit.Columns.Add("audit_id", "ID");
-            _dgvFGAAudit.Columns.Add("db_user", "DB User");
-            _dgvFGAAudit.Columns.Add("policy_name", "Policy");
-            _dgvFGAAudit.Columns.Add("object_name", "Bảng");
-            _dgvFGAAudit.Columns.Add("statement_type", "Loại Lệnh");
-            _dgvFGAAudit.Columns.Add("action_timestamp", "Thời Gian");
-            _dgvFGAAudit.Columns.Add("sql_preview", "SQL Preview");
+            _dgvUnifiedAudit = CreateDataGrid();
+            _dgvUnifiedAudit.Columns.Add("audit_id", "ID");
+            _dgvUnifiedAudit.Columns.Add("database_user", "Database User");
+            _dgvUnifiedAudit.Columns.Add("audit_option", "Audit Option");
+            _dgvUnifiedAudit.Columns.Add("object_name", "Bảng");
+            _dgvUnifiedAudit.Columns.Add("action_name", "Hành Động");
+            _dgvUnifiedAudit.Columns.Add("action_timestamp", "Thời Gian");
+            _dgvUnifiedAudit.Columns.Add("sql_preview", "SQL Preview");
 
-            SetColumnWidths(_dgvFGAAudit, new[] { 60, 100, 180, 120, 100, 150, 300 });
+            SetColumnWidths(_dgvUnifiedAudit, new[] { 60, 100, 180, 120, 100, 150, 300 });
 
-            tab.Controls.Add(_dgvFGAAudit);
+            tab.Controls.Add(_dgvUnifiedAudit);
             return tab;
         }
 
@@ -331,7 +327,7 @@ namespace HospitalManagement.App.Forms
                 {
                     _dgvTodayLogs!.Rows.Add(
                         log.AuditId, log.Username, log.FullName, log.ActionType,
-                        log.ObjectName, log.Result, log.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss"), log.Notes
+                        log.Result, log.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss"), log.Notes
                     );
                 }
 
@@ -341,7 +337,7 @@ namespace HospitalManagement.App.Forms
                 {
                     _dgvDataChanges!.Rows.Add(
                         change.AuditId, change.Username, change.FullName, change.ActionType,
-                        change.ObjectName, change.RecordId, change.OldValue, change.NewValue,
+                        change.RecordId, change.OldValue, change.NewValue,
                         change.Result, change.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
                     );
                 }
@@ -352,7 +348,7 @@ namespace HospitalManagement.App.Forms
                 {
                     _dgvErrors!.Rows.Add(
                         err.AuditId, err.Username, err.FullName, err.ActionType,
-                        err.ObjectName, err.ErrorCode, err.ErrorMessage, err.Result,
+                        err.ErrorCode, err.ErrorMessage, err.Result,
                         err.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
                     );
                 }
@@ -383,17 +379,17 @@ namespace HospitalManagement.App.Forms
                 {
                     _dgvStandardAudit!.Rows.Add(
                         audit.AuditId, audit.Username, audit.ActionType,
-                        audit.ObjectName, audit.ErrorCode, audit.Result,
+                        audit.ErrorCode, audit.Result,
                         audit.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss")
                     );
                 }
 
-                // Load FGA Audit Logs (từ DBA_FGA_AUDIT_TRAIL)
-                var fgaAudits = _auditService.GetFGAAuditLogs("", "", 50);
-                foreach (var audit in fgaAudits)
+                // Load Unified Audit Logs (từ UNIFIED_AUDIT_TRAIL)
+                var unifiedAudits = _auditService.GetUnifiedAuditLogs("", "", 50);
+                foreach (var audit in unifiedAudits)
                 {
                     var noteParts = audit.Notes?.Split('|') ?? new[] { "", "" };
-                    _dgvFGAAudit!.Rows.Add(
+                    _dgvUnifiedAudit!.Rows.Add(
                         audit.AuditId, audit.Username, noteParts[0].Trim(),
                         audit.ObjectName, audit.ActionType,
                         audit.ActionTimestamp.ToString("yyyy-MM-dd HH:mm:ss"),
@@ -410,15 +406,15 @@ namespace HospitalManagement.App.Forms
                     );
                 }
 
-                var fgaStatsDt = _auditService.GetFGAStatistics();
-                foreach (DataRow row in fgaStatsDt.Rows)
+                var unifiedStatsDt = _auditService.GetUnifiedAuditStatistics();
+                foreach (DataRow row in unifiedStatsDt.Rows)
                 {
                     _dgvAuditStats!.Rows.Add(
-                        "FGA Policy", $"{row["policy_name"]} ({row["object_name"]})", row["so_lan_ghi_vay"], DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
+                        "Unified Audit", row["action_name"], row["so_lan_ghi_vay"], DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     );
                 }
 
-                _lblStatus.Text = $"✅ Tải thành công | Hôm nay: {_dgvTodayLogs!.Rows.Count} bản ghi | Standard Audit: {_dgvStandardAudit!.Rows.Count} | FGA: {_dgvFGAAudit!.Rows.Count}";
+                _lblStatus.Text = $"✅ Tải thành công | Hôm nay: {_dgvTodayLogs!.Rows.Count} bản ghi | Standard Audit: {_dgvStandardAudit!.Rows.Count} | Unified Audit: {_dgvUnifiedAudit!.Rows.Count}";
             }
             catch (Exception ex)
             {
@@ -435,7 +431,7 @@ namespace HospitalManagement.App.Forms
             _dgvDeployment?.Rows.Clear();
             _dgvSummary?.Rows.Clear();
             _dgvStandardAudit?.Rows.Clear();
-            _dgvFGAAudit?.Rows.Clear();
+            _dgvUnifiedAudit?.Rows.Clear();
             _dgvAuditStats?.Rows.Clear();
 
             LoadAllData();
