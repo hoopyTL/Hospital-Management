@@ -239,7 +239,18 @@ namespace HospitalManagement.App.Forms
                 mainForm.FormClosed += (s2, e2) =>
                 {
                     OracleHelper.Instance?.Dispose();
-                    this.Close();
+
+                    txtUsername.Text = "";
+                    txtPassword.Text = "";
+                    lblStatus.Text = "";
+                    btnLogin.Enabled = true;
+
+                    this.WindowState = FormWindowState.Normal;
+                    this.Show();
+                    this.BringToFront();
+                    this.Activate();
+
+                    txtUsername.Focus();
                 };
                 mainForm.Show();
             }

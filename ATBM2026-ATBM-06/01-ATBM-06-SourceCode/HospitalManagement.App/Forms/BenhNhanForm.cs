@@ -89,7 +89,10 @@ namespace HospitalManagement.App.Forms
 
             btnLogout = UIHelper.CreateButton("🚪 Đăng xuất", UIHelper.AccentRed, 130, 36);
             btnLogout.Location = new Point(740, 15);
-            btnLogout.Click += (s, e) => this.Close();
+            btnLogout.Click += (s, e) => 
+            {
+                this.Close();
+            };
 
             pnlHeader.Controls.AddRange(new Control[] { lblWelcome, lblRole, btnLogout });
 

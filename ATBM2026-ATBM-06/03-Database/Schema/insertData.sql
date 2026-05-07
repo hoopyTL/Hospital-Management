@@ -133,3 +133,4 @@ BEGIN
     COMMIT;
     DBMS_OUTPUT.PUT_LINE('Hoàn thành chèn 100.000 bộ dữ liệu HSBA, HSBA_DV và DON_THUOC.');
 END;
+/
