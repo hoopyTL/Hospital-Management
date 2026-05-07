@@ -1,6 +1,4 @@
 SET SERVEROUTPUT ON;
-
-
 -- ==========================================
 -- 1. Kích hoạt kiểm toán (Chạy bằng sysdba trên root container nếu hệ thống chưa bật)
 -- ALTER SYSTEM SET audit_trail=db,extended SCOPE=SPFILE;
@@ -15,6 +13,7 @@ NOAUDIT ALL ON admin.hsba;
 NOAUDIT ALL ON admin.don_thuoc;
 NOAUDIT ALL ON admin.hsba_dv;
 NOAUDIT ALL ON admin.benh_nhan;
+NOAUDIT SESSION BY NV0051;
 
 AUDIT SELECT ON admin.hsba BY ACCESS;
 AUDIT UPDATE ON admin.don_thuoc BY ACCESS WHENEVER NOT SUCCESSFUL;
