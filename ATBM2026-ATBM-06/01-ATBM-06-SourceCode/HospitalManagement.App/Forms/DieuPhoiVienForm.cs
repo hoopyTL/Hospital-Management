@@ -504,6 +504,20 @@ namespace HospitalManagement.App.Forms
             }
         }
 
+        /// <summary>Danh sách mã được phép gán vào HSBA.MA_BS (đồng bộ MV_BACSI_LIST).</summary>
+        private static HashSet<string> LoadBacSiMaSet()
+        {
+            var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var dt = OracleHelper.Instance.ExecuteQuery("SELECT MA_NV FROM ADMIN.MV_BACSI_LIST");
+            foreach (DataRow r in dt.Rows)
+            {
+                var s = r["MA_NV"]?.ToString()?.Trim();
+                if (!string.IsNullOrEmpty(s))
+                    set.Add(s);
+            }
+            return set;
+        }
+
         private void BtnNewHsbaSave_Click(object sender, EventArgs e)
         {
             try
@@ -587,12 +601,41 @@ namespace HospitalManagement.App.Forms
                     return;
                 }
                 int ok = 0;
+                HashSet<string> allowedBacSi = LoadBacSiMaSet();
+                if (allowedBacSi.Count == 0)
+                {
+                    UIHelper.ShowWarning("Không tải được danh sách Bác sĩ (MV_BACSI_LIST). Không lưu.");
+                    return;
+                }
+
                 foreach (DataRow row in changes.Rows)
                 {
+                    object mbsRaw = row["MA_BS"];
+                    string mbs = mbsRaw == null || mbsRaw == DBNull.Value
+                        ? ""
+                        : mbsRaw.ToString()?.Trim() ?? "";
+
+                    object mbsParam;
+                    if (string.IsNullOrEmpty(mbs))
+                    {
+                        mbsParam = DBNull.Value;
+                    }
+                    else if (!allowedBacSi.Contains(mbs))
+                    {
+                        UIHelper.ShowWarning(
+                            $"Mã bác sĩ '{mbs}' không hợp lệ.\n\n" +
+                            "Chỉ được gán mã nhân viên có trong MV_BACSI_LIST (bác sĩ/y sĩ), không dùng mã điều phối / kỹ thuật viên.");
+                        return;
+                    }
+                    else
+                    {
+                        mbsParam = mbs;
+                    }
+
                     OracleHelper.Instance.ExecuteNonQuery(
                         "UPDATE ADMIN.HSBA SET MA_KHOA = :mk, MA_BS = :mbs WHERE MA_HSBA = :mh",
                         new OracleParameter("mk", row["MA_KHOA"] ?? DBNull.Value),
-                        new OracleParameter("mbs", row["MA_BS"] ?? DBNull.Value),
+                        new OracleParameter("mbs", mbsParam),
                         new OracleParameter("mh", row["MA_HSBA"]));
                     ok++;
                 }
