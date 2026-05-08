@@ -6,5 +6,12 @@
 
 @@initDB.sql
 
+
+-- Chạy script Reset OLS (nếu có rác từ trước)
+@@../OLS/00_reset_ols.sql
+
+-- Cấp các quyền cấu hình OLS cho ADMIN
+@@../OLS/01_sys_setup.sql
+
 -- Sau khi chạy xong file này, đăng nhập ADMIN và chạy file:
 -- run_02_as_admin.sql
