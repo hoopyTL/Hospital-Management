@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 using HospitalManagement.App.Models;
 using HospitalManagement.App.Services;
@@ -17,7 +18,10 @@ namespace HospitalManagement.App.Forms
         private DataGridView? _dgvStandardAudit;
         private DataGridView? _dgvUnifiedAudit;
         private Button? _btnRefresh;
+        private Button? _btnDisableAudit;
+        private Button? _btnEnableAudit;
         private Label? _lblStatus;
+        
 
         public AuditLogForm(DbConnectionSettings settings)
         {
@@ -25,7 +29,7 @@ namespace HospitalManagement.App.Forms
             var connectionFactory = new OracleConnectionFactory(settings);
             _auditService = new AuditLogService(connectionFactory);
 
-            Text = "📋 Audit Log Viewer (Chỉ dữ liệu 04_show_log.sql)";
+            Text = "📋 Audit Log Viewer";
             Size = new Size(1200, 700);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = UIHelper.PrimaryDark;
@@ -44,7 +48,7 @@ namespace HospitalManagement.App.Forms
 
             var lblTitle = new Label
             {
-                Text = "Lịch Sử Audit - (Dựa trên 04_show_log.sql)",
+                Text = "Lịch Sử Audit",
                 Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = UIHelper.TextPrimary, AutoSize = true, Location = new Point(0, 0)
             };
 
@@ -65,6 +69,16 @@ namespace HospitalManagement.App.Forms
             _btnRefresh = UIHelper.CreateButton("🔄 Làm Mới", UIHelper.PrimaryBlue, 120, 35);
             _btnRefresh.Click += (s, e) => BtnRefresh_Click(s, e);
             toolbarPanel.Controls.Add(_btnRefresh);
+
+            _btnDisableAudit = UIHelper.CreateButton("🛑 Tắt Audit", UIHelper.AccentRed, 120, 35);
+            _btnDisableAudit.Click += (s, e) => BtnDisableAudit_Click(s, e);
+
+            _btnEnableAudit = UIHelper.CreateButton("✅ Bật Audit", Color.MediumSeaGreen, 120, 35);
+            _btnEnableAudit.Click += (s, e) => BtnEnableAudit_Click(s, e);
+
+            toolbarPanel.Controls.Add(_btnRefresh);
+            toolbarPanel.Controls.Add(_btnEnableAudit);
+            toolbarPanel.Controls.Add(_btnDisableAudit);
 
             // === Tab Control ===
             _tabControl = new TabControl { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 9) };
@@ -176,6 +190,71 @@ namespace HospitalManagement.App.Forms
             _dgvStandardAudit?.Rows.Clear();
             _dgvUnifiedAudit?.Rows.Clear();
             LoadAllData();
+        }
+
+        private void BtnEnableAudit_Click(object? sender, EventArgs e)
+            {
+                try
+                {
+                    _lblStatus!.Text = "⏳ Đang chạy script bật Audit...";
+                    _lblStatus.ForeColor = UIHelper.TextSecondary;
+                    Application.DoEvents();
+
+                    // Đường dẫn tới file 01_audit.sql
+                    string basePath = AppDomain.CurrentDomain.BaseDirectory;
+                    string scriptPath = Path.GetFullPath(Path.Combine(basePath, @"..\..\..\..\..\03-Database\Audit\01_audit.sql"));
+                    
+                    _auditService.ExecuteSqlScript(scriptPath);
+
+                    _lblStatus.Text = "✅ Đã bật Audit thành công!";
+                    _lblStatus.ForeColor = Color.MediumSeaGreen;
+                    MessageBox.Show("Đã thực thi script bật Audit (01_audit.sql) thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    
+                    // Sau khi bật audit, làm mới lại dữ liệu để xem log mới nhất
+                    BtnRefresh_Click(null, EventArgs.Empty);
+                }
+                catch (Exception ex)
+                {
+                    _lblStatus!.Text = "❌ Lỗi khi bật Audit!";
+                    _lblStatus.ForeColor = UIHelper.AccentRed;
+                    MessageBox.Show($"Lỗi thực thi: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+
+        private void BtnDisableAudit_Click(object? sender, EventArgs e)
+        {
+            var confirmResult = MessageBox.Show(
+                "Bạn có chắc chắn muốn TẮT Audit không? Thao tác này sẽ làm ngừng việc ghi log hệ thống.",
+                "Xác nhận tắt Audit",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirmResult == DialogResult.Yes)
+            {
+                try
+                {
+                    _lblStatus!.Text = "⏳ Đang chạy script tắt Audit...";
+                    _lblStatus.ForeColor = UIHelper.TextSecondary;
+                    Application.DoEvents();
+
+                    // Xác định đường dẫn tương đối (AppDomain.CurrentDomain.BaseDirectory thường trỏ vào thư mục bin/Debug/netx.x)
+                    string basePath = AppDomain.CurrentDomain.BaseDirectory;
+                    string scriptPath = Path.GetFullPath(Path.Combine(basePath, @"..\..\..\..\..\03-Database\Audit\03_disable_audit.sql"));
+                    
+                    // Gọi Service để chạy script
+                    _auditService.ExecuteSqlScript(scriptPath);
+
+                    _lblStatus.Text = "✅ Đã tắt Audit thành công!";
+                    _lblStatus.ForeColor = Color.MediumSeaGreen;
+                    MessageBox.Show("Đã thực thi script tắt Audit thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch (Exception ex)
+                {
+                    _lblStatus!.Text = "❌ Lỗi khi tắt Audit!";
+                    _lblStatus.ForeColor = UIHelper.AccentRed;
+                    MessageBox.Show($"Lỗi thực thi: {ex.Message}\n\nĐường dẫn script có thể chưa chính xác.", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
     }
 }

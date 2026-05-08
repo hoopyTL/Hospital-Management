@@ -1,10 +1,3 @@
-SET SERVEROUTPUT ON;
--- ==========================================
--- 1. Kích hoạt kiểm toán (Chạy bằng sysdba trên root container nếu hệ thống chưa bật)
--- ALTER SYSTEM SET audit_trail=db,extended SCOPE=SPFILE;
--- SHUTDOWN IMMEDIATE;
--- STARTUP;
-
 -- ==========================================
 -- 2. THỰC HIỆN KIỂM TOÁN DÙNG STANDARD AUDIT
 -- ==========================================
@@ -26,12 +19,6 @@ AUDIT INSERT ON admin.benh_nhan BY ACCESS WHENEVER SUCCESSFUL;
 -- ==========================================
 
 -- 3a. Audit UPDATE trên các cột cụ thể của don_thuoc
-BEGIN
-    EXECUTE IMMEDIATE 'DROP AUDIT POLICY UNIFIED_AUDIT_UPDATE_DONTHUOC';
-EXCEPTION WHEN OTHERS THEN NULL;
-END;
-/
-
 CREATE AUDIT POLICY UNIFIED_AUDIT_UPDATE_DONTHUOC
   ACTIONS UPDATE ON admin.don_thuoc;
 
@@ -39,11 +26,6 @@ AUDIT POLICY UNIFIED_AUDIT_UPDATE_DONTHUOC;
 
 
 -- 3b,3c. Audit cập nhật trên hsba
-BEGIN
-    EXECUTE IMMEDIATE 'DROP AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA';
-EXCEPTION WHEN OTHERS THEN NULL;
-END;
-/
 CREATE AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA
   ACTIONS UPDATE ON admin.hsba;
 
@@ -51,12 +33,6 @@ AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_UPDATE_HSBA;
 
 
 -- 3d. Audit DML trên hsba_dv (Trừ user ADMIN)
-BEGIN
-    EXECUTE IMMEDIATE 'DROP AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_DML_HSBA_DV';
-EXCEPTION WHEN OTHERS THEN NULL;
-END;
-/
-
 CREATE AUDIT POLICY UNIFIED_AUDIT_ILLEGAL_DML_HSBA_DV
   ACTIONS INSERT ON admin.hsba_dv,
           UPDATE ON admin.hsba_dv,

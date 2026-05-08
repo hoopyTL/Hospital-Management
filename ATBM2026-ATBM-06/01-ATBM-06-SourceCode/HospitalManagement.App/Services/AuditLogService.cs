@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using Oracle.ManagedDataAccess.Client;
 using HospitalManagement.App.Models;
@@ -8,6 +9,36 @@ namespace HospitalManagement.App.Services
 {
     public class AuditLogService
     {
+        public void ExecuteSqlScript(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException($"Không tìm thấy file script tại: {filePath}");
+            }
+
+            // Đọc toàn bộ nội dung file
+            string scriptContent = File.ReadAllText(filePath);
+            
+            // OracleCommand không hỗ trợ chạy nhiều lệnh cùng lúc được ngăn cách bởi dấu ';' 
+            // nên chúng ta sẽ tách các câu lệnh ra (áp dụng cho các lệnh NOAUDIT cơ bản)
+            string[] commands = scriptContent.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            using (OracleConnection connection = _connectionFactory.CreateOpenConnection())
+            {
+                foreach (string cmdText in commands)
+                {
+                    string cleanCmd = cmdText.Trim();
+                    // Bỏ qua các dấu '/' (thường dùng trong PL/SQL) hoặc dòng trống
+                    if (string.IsNullOrWhiteSpace(cleanCmd) || cleanCmd == "/") continue;
+
+                    using (OracleCommand command = new OracleCommand(cleanCmd, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
         private readonly OracleConnectionFactory _connectionFactory;
 
         public AuditLogService(OracleConnectionFactory connectionFactory)
