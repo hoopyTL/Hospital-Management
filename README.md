@@ -159,16 +159,7 @@ Hospital-Management/
 
 ---
 
-## 👥 Contributors
 
-| Tên | GitHub |
-|-----|--------|
-| Nguyen Van Hop | [@hoopyTL](https://github.com/hoopyTL) |
-| Nguyen Quoc Bao | [@QUOCBAO1402](https://github.com/QUOCBAO1402) |
-| Tin Nguyen | - |
-| Ettesoc | - |
-
----
 
 ## 📄 License
 
