@@ -1,25 +1,35 @@
-# Whole docs folder (remove docs/ line if you want DEMO_GUIDE.md etc. in git).
-docs/
+# ===== OS =====
+.DS_Store
+[Tt]humbs.db
+[Dd]esktop.ini
 
-# Visual Studio / VS Code
+# ===== Visual Studio / VS Code =====
 .vs/
 *.user
 *.userosscache
 *.sln.docstates
 
-# Build output (.NET)
+# ===== Build output (.NET) =====
 [Bb]in/
 [Oo]bj/
+*.pdb
 
-# dotnet cache (solution-level)
+# ===== dotnet cache =====
 .dotnet/
 .nuget/
 
+# ===== Node / IDE =====
 node_modules/
 .idea/
 
-# Local-only lightweight database demo scripts.
-ATBM2026-ATBM-06/03-Database/_LocalDemo/
+# ===== AI agent config (local symlink) =====
+.agent
+.gemini/
 
-[Tt]umbs.db
-[Dd]esktop.ini
+# ===== Word temp files =====
+~$*
+
+# ===== Local-only database demo scripts =====
+ATBM2026-ATBM-06/03-Database/_LocalDemo/
+CHANGE_LOG.md
+llms.txt
